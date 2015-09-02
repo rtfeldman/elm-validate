@@ -59,7 +59,7 @@ eager validators subject =
 
 
 {-| Return `True` if none of the given validators returns any errors for the given
-subject, and `False` if any of them returns one or more errors.
+subject, and `False` if any validator returns one or more errors.
 -}
 any : List (Validator error subject) -> subject -> Bool
 any validators subject =
