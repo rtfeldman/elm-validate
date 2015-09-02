@@ -7,6 +7,12 @@ subject and returns a list of errors representing anything invalid about
 that subject. If the list is empty, the subject is valid.
 
 For example:
+```elm
+email =
+    ""
+
+ifBlank "Please enter a valid email address."
+```
 
 ```elm
 validateModel : Model -> List String
@@ -19,6 +25,11 @@ validateModel =
 
 type alias Model =
     { name : String, email : String, age : String }
+
+-- Evaluates to True
+validateModel { name = "Sam", email = "", age = "abc" }
+    == ["Please enter an email address.", "Age must be a whole number."]
+
 ```
 
 `elm-validate` is not opinionated about how you represent your errors. For
@@ -39,4 +50,8 @@ type Field =
 
 type alias Model =
     { name : String, email : String, age : String }
+
+-- Evaluates to True
+validateModel { name = "Sam", email = "", age = "abc" }
+    == [(Email, "Please enter an email address."), (Age, "Age must be a whole number.")]
 ```
