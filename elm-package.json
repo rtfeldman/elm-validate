@@ -1,5 +1,5 @@
 {
-    "version": "1.0.4",
+    "version": "1.0.5",
     "summary": "Convenience functions for validating data.",
     "repository": "https://github.com/rtfeldman/elm-validate.git",
     "license": "BSD-3-Clause",

@@ -7,12 +7,6 @@ subject and returns a list of errors representing anything invalid about
 that subject. If the list is empty, the subject is valid.
 
 For example:
-```elm
-email =
-    ""
-
-ifBlank "Please enter a valid email address."
-```
 
 ```elm
 validateModel : Model -> List String
@@ -32,8 +26,9 @@ validateModel { name = "Sam", email = "", age = "abc" }
 
 ```
 
-`elm-validate` is not opinionated about how you represent your errors. For
-example, you might want to represent them as a tuple of the error message
+`elm-validate` is not opinionated about how you represent your errors.
+
+For example, you might want to represent them as a tuple of the error message
 as well as the field responsible for the error:
 
 ```elm
