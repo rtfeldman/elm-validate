@@ -1,8 +1,8 @@
-module Validate (Validator, all, any, eager, ifBlank, ifNotInt, ifEmptyDict, ifEmptySet, ifInvalid) where
+module Validate (Validator, all, any, eager, ifBlank, ifNotInt, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing) where
 {-| Convenience functions for validating data.
 
 # Validating a subject
-@docs Validator, ifBlank, ifNotInt, ifEmptyDict, ifEmptySet, ifInvalid
+@docs Validator, ifBlank, ifNotInt, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing
 
 
 # Combining validators
@@ -108,6 +108,21 @@ ifEmptyDict =
 ifEmptySet : error -> Validator error (Set comparable)
 ifEmptySet =
     ifInvalid Set.isEmpty
+
+
+isNothing : Maybe a -> Bool
+isNothing subject =
+    case subject of
+        Just _ ->
+            False
+        Nothing ->
+            True
+
+
+{-| Return an error if given a `Maybe` that is `Nothing`. -}
+ifNothing : error -> Validator error (Maybe a)
+ifNothing =
+    ifInvalid isNothing
 
 
 {-| Return an error if the given predicate returns `True` for the given
