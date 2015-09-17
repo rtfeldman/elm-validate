@@ -1,8 +1,8 @@
-module Validate (Validator, all, any, eager, ifBlank, ifNotInt, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail) where
+module Validate (Validator, all, any, eager, ifBlank, ifNotInt, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifNothingOrEmpty, ifInvalidEmail) where
 {-| Convenience functions for validating data.
 
 # Validating a subject
-@docs Validator, ifBlank, ifNotInt, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail
+@docs Validator, ifBlank, ifNotInt, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail, ifNothingOrEmpty
 
 
 # Combining validators
@@ -123,6 +123,20 @@ isNothing subject =
 ifNothing : error -> Validator error (Maybe a)
 ifNothing =
     ifInvalid isNothing
+
+
+isNothingOrEmpty : Maybe String -> Bool
+isNothingOrEmpty maybeString =
+    case maybeString of
+        Just "" -> True
+        Just _  -> False
+        Nothing -> True
+
+
+{-| Return an error if a Maybe String is either Nothing or an Empty String -}
+ifNothingOrEmpty : error -> Validator error (Maybe String)
+ifNothingOrEmpty =
+    ifInvalid isNothingOrEmpty
 
 
 isValidEmail : String -> Bool
