@@ -99,13 +99,13 @@ ifNotInt error subject =
 
 
 {-| Return an error if the given `Dict` is empty. -}
-ifEmptyDict : error -> Validator error (Dict comparable v)
+ifEmptyDict : error -> Validator error (Dict a v)
 ifEmptyDict =
     ifInvalid Dict.isEmpty
 
 
 {-| Return an error if the given `Set` is empty. -}
-ifEmptySet : error -> Validator error (Set comparable)
+ifEmptySet : error -> Validator error (Set a)
 ifEmptySet =
     ifInvalid Set.isEmpty
 
