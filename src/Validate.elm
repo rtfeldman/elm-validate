@@ -1,4 +1,5 @@
-module Validate (Validator, all, any, eager, ifBlank, ifNotInt, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail) where
+module Validate exposing (Validator, all, any, eager, ifBlank, ifNotInt, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail)
+
 {-| Convenience functions for validating data.
 
 # Validating a subject
@@ -21,7 +22,7 @@ describing anything invalid about that subject.
 An empty error list means the subject was valid.
 -}
 type alias Validator error subject =
-    (subject -> List error)
+    subject -> List error
 
 
 {-| Run each of the given validators, in order, and return their concatenated
@@ -77,7 +78,8 @@ any validators subject =
 
 
 {-| Return an error if the given `String` is empty, or if it contains only
-whitespace characters. -}
+whitespace characters.
+-}
 ifBlank : error -> Validator error String
 ifBlank =
     ifInvalid (Regex.contains lacksNonWhitespaceChars)
@@ -87,7 +89,8 @@ lacksNonWhitespaceChars =
     Regex.regex "^\\s*$"
 
 
-{-| Return an error if the given `String` cannot be parsed as an `Int`. -}
+{-| Return an error if the given `String` cannot be parsed as an `Int`.
+-}
 ifNotInt : error -> Validator error String
 ifNotInt error subject =
     case String.toInt subject of
@@ -95,16 +98,18 @@ ifNotInt error subject =
             []
 
         Err _ ->
-            [error]
+            [ error ]
 
 
-{-| Return an error if the given `Dict` is empty. -}
+{-| Return an error if the given `Dict` is empty.
+-}
 ifEmptyDict : error -> Validator error (Dict comparable v)
 ifEmptyDict =
     ifInvalid Dict.isEmpty
 
 
-{-| Return an error if the given `Set` is empty. -}
+{-| Return an error if the given `Set` is empty.
+-}
 ifEmptySet : error -> Validator error (Set comparable)
 ifEmptySet =
     ifInvalid Set.isEmpty
@@ -115,11 +120,13 @@ isNothing subject =
     case subject of
         Just _ ->
             False
+
         Nothing ->
             True
 
 
-{-| Return an error if given a `Maybe` that is `Nothing`. -}
+{-| Return an error if given a `Maybe` that is `Nothing`.
+-}
 ifNothing : error -> Validator error (Maybe a)
 ifNothing =
     ifInvalid isNothing
@@ -134,20 +141,23 @@ isValidEmail =
     in
         Regex.contains validEmail
 
-{-| Return an error if the given email string is malformed. -}
+
+{-| Return an error if the given email string is malformed.
+-}
 ifInvalidEmail : error -> Validator error String
 ifInvalidEmail =
     ifInvalid (not << isValidEmail)
 
 
 {-| Return an error if the given predicate returns `True` for the given
-subject. -}
+subject.
+-}
 ifInvalid : (subject -> Bool) -> error -> Validator error subject
 ifInvalid test error =
     let
         validator subject =
             if test subject then
-                [error]
+                [ error ]
             else
                 []
     in
