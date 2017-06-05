@@ -1,9 +1,9 @@
-module Validate exposing (Validator, all, any, eager, ifBlank, ifNotInt, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail)
+module Validate exposing (Validator, all, any, eager, ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail)
 
 {-| Convenience functions for validating data.
 
 # Validating a subject
-@docs Validator, ifBlank, ifNotInt, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail
+@docs Validator, ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail
 
 
 # Combining validators
@@ -102,7 +102,7 @@ ifNotInt error subject =
             [ error ]
 
 
-{- Return an error if the given `List` is empty.
+{-| Return an error if the given `List` is empty.
 -}
 ifEmptyList : error -> Validator error (List a)
 ifEmptyList =
