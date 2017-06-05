@@ -85,6 +85,7 @@ ifBlank =
     ifInvalid (Regex.contains lacksNonWhitespaceChars)
 
 
+lacksNonWhitespaceChars : Regex.Regex
 lacksNonWhitespaceChars =
     Regex.regex "^\\s*$"
 
