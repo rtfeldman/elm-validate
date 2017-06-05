@@ -101,6 +101,13 @@ ifNotInt error subject =
             [ error ]
 
 
+{- Return an error if the given `List` is empty.
+-}
+ifEmptyList : error -> Validator error (List a)
+ifEmptyList =
+    ifInvalid List.isEmpty
+
+
 {-| Return an error if the given `Dict` is empty.
 -}
 ifEmptyDict : error -> Validator error (Dict comparable v)
