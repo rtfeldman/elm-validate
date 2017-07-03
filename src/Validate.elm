@@ -148,6 +148,40 @@ ifInvalidEmail : error -> Validator error String
 ifInvalidEmail =
     ifInvalid (not << isValidEmail)
 
+{-| Return an error if the given string is too short.
+-}
+isLongerThan : Int -> String -> Bool
+isLongerThan minLength subject =
+    (String.length subject) > minLength
+
+
+ifLongerThan : Int -> error -> Validator error String
+ifLongerThan minLength =
+    ifInvalid (isLongerThan minLength)
+
+
+{-| Return an error if the given string is too long.
+-}
+isShorterThan : Int -> String -> Bool
+isShorterThan maxLength subject =
+    (String.length subject) < maxLength
+
+
+ifShorterThan : Int -> error -> Validator error String
+ifShorterThan maxLength =
+    ifInvalid (isShorterThan maxLength)
+
+
+{-| Return an error if length of a given string isn't between minLength and maxLength.
+-}
+isLengthBetween : Int -> Int -> String -> Bool
+isLengthBetween minLength maxLength subject =
+    (isLongerThan minLength subject) && (isShorterThan maxLength subject)
+
+
+ifLengthBetween : Int -> Int -> error -> Validator error String
+ifLengthBetween minLength maxLength =
+    ifInvalid (not << isLengthBetween minLength maxLength)
 
 {-| Return an error if the given predicate returns `True` for the given
 subject.
