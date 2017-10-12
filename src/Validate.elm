@@ -101,6 +101,7 @@ ifBlank =
     ifContains lacksNonWhitespaceChars
 
 
+lacksNonWhitespaceChars : Regex
 lacksNonWhitespaceChars =
     Regex.regex "^\\s*$"
 
