@@ -1,9 +1,9 @@
-module Validate exposing (Validator, all, any, eager, ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail)
+module Validate exposing (Validator, all, any, eager, ifDoesntContain, ifContains, ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail)
 
 {-| Convenience functions for validating data.
 
 # Validating a subject
-@docs Validator, ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail
+@docs Validator, ifDoesntContain, ifContains, ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail
 
 
 # Combining validators
@@ -11,7 +11,7 @@ module Validate exposing (Validator, all, any, eager, ifBlank, ifNotInt, ifEmpty
 -}
 
 import String
-import Regex
+import Regex exposing (Regex)
 import Dict exposing (Dict)
 import Set exposing (Set)
 
@@ -75,6 +75,22 @@ any validators subject =
 
                 error :: _ ->
                     False
+
+
+{-| `ifDoesntContain regex` returns an error if the given `String`
+doesn't contain the given `Regex`.
+-}
+ifDoesntContain : Regex -> error -> Validator error String
+ifDoesntContain regex =
+    ifInvalid (not << Regex.contains regex)
+
+
+{-| `ifContains regex` returns an error if the given `String`
+contains the given `Regex`.
+-}
+ifContains : Regex -> error -> Validator error String
+ifContains regex =
+    ifInvalid (Regex.contains regex)
 
 
 {-| Return an error if the given `String` is empty, or if it contains only
