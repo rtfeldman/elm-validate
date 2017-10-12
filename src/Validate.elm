@@ -98,7 +98,7 @@ whitespace characters.
 -}
 ifBlank : error -> Validator error String
 ifBlank =
-    ifInvalid (Regex.contains lacksNonWhitespaceChars)
+    ifContains lacksNonWhitespaceChars
 
 
 lacksNonWhitespaceChars =
@@ -155,21 +155,17 @@ ifNothing =
     ifInvalid isNothing
 
 
-isValidEmail : String -> Bool
-isValidEmail =
-    let
-        validEmail =
-            Regex.regex "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
-                |> Regex.caseInsensitive
-    in
-        Regex.contains validEmail
+validEmail : Regex
+validEmail =
+    Regex.regex "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+        |> Regex.caseInsensitive
 
 
 {-| Return an error if the given email string is malformed.
 -}
 ifInvalidEmail : error -> Validator error String
 ifInvalidEmail =
-    ifInvalid (not << isValidEmail)
+    ifDoesntContain validEmail
 
 
 {-| Return an error if the given predicate returns `True` for the given
