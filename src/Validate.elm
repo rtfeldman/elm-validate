@@ -1,9 +1,9 @@
-module Validate exposing (Validator, all, any, eager, ifBlank, ifNotInt, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail)
+module Validate exposing (Validator, all, any, eager, ifDoesntContain, ifContains, ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail)
 
 {-| Convenience functions for validating data.
 
 # Validating a subject
-@docs Validator, ifBlank, ifNotInt, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail
+@docs Validator, ifDoesntContain, ifContains, ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail
 
 
 # Combining validators
@@ -11,7 +11,7 @@ module Validate exposing (Validator, all, any, eager, ifBlank, ifNotInt, ifEmpty
 -}
 
 import String
-import Regex
+import Regex exposing (Regex)
 import Dict exposing (Dict)
 import Set exposing (Set)
 
@@ -77,14 +77,31 @@ any validators subject =
                     False
 
 
+{-| `ifDoesntContain regex` returns an error if the given `String`
+doesn't contain the given `Regex`.
+-}
+ifDoesntContain : Regex -> error -> Validator error String
+ifDoesntContain regex =
+    ifInvalid (not << Regex.contains regex)
+
+
+{-| `ifContains regex` returns an error if the given `String`
+contains the given `Regex`.
+-}
+ifContains : Regex -> error -> Validator error String
+ifContains regex =
+    ifInvalid (Regex.contains regex)
+
+
 {-| Return an error if the given `String` is empty, or if it contains only
 whitespace characters.
 -}
 ifBlank : error -> Validator error String
 ifBlank =
-    ifInvalid (Regex.contains lacksNonWhitespaceChars)
+    ifContains lacksNonWhitespaceChars
 
 
+lacksNonWhitespaceChars : Regex
 lacksNonWhitespaceChars =
     Regex.regex "^\\s*$"
 
@@ -99,6 +116,13 @@ ifNotInt error subject =
 
         Err _ ->
             [ error ]
+
+
+{-| Return an error if the given `List` is empty.
+-}
+ifEmptyList : error -> Validator error (List a)
+ifEmptyList =
+    ifInvalid List.isEmpty
 
 
 {-| Return an error if the given `Dict` is empty.
@@ -132,21 +156,17 @@ ifNothing =
     ifInvalid isNothing
 
 
-isValidEmail : String -> Bool
-isValidEmail =
-    let
-        validEmail =
-            Regex.regex "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
-                |> Regex.caseInsensitive
-    in
-        Regex.contains validEmail
+validEmail : Regex
+validEmail =
+    Regex.regex "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+        |> Regex.caseInsensitive
 
 
 {-| Return an error if the given email string is malformed.
 -}
 ifInvalidEmail : error -> Validator error String
 ifInvalidEmail =
-    ifInvalid (not << isValidEmail)
+    ifDoesntContain validEmail
 
 
 {-| Return an error if the given predicate returns `True` for the given
