@@ -8,10 +8,11 @@ module Validate
         , ifEmptyDict
         , ifEmptyList
         , ifEmptySet
-        , ifInvalid
+        , ifFalse
         , ifInvalidEmail
         , ifNotInt
         , ifNothing
+        , ifTrue
         , isBlank
         , isInt
         , isValidEmail
@@ -28,7 +29,7 @@ module Validate
 
 # Creating validators
 
-@docs ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifNothing, ifInvalidEmail, ifInvalid
+@docs ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifNothing, ifInvalidEmail, ifTrue, ifFalse
 
 
 # Combining validators
@@ -67,18 +68,18 @@ subject.
 
     import Validate exposing (ifBlank, ifNotInt, validate)
 
-    errors : Model -> List String
-    errors model =
-        validate modelValidator model
-
-    modelValidator : Validator Model String
+    modelValidator : Validator ( Field, String ) Model
     modelValidator =
         Validate.all
-            [ ifBlank .name "Please enter a name."
-            , ifBlank .email "Please enter an email address."
-            , ifNotInt .age "Age must be a whole number."
-            , ifEmptyList .selections "Please select at least one."
+            [ ifBlank .name ( Name, "Please enter a name." )
+            , ifBlank .email ( Email, "Please enter an email address." )
+            , ifNotInt .age ( Age, "Age must be a whole number." )
             ]
+
+    validate modelValidator
+        { name = "Sam", email = "", age = "abc", selections = [ "cats" ] }
+        == [ "Please enter an email address.", "Age must be a whole number." ]
+        --> True
 
 -}
 validate : Validator error subject -> subject -> List error
@@ -105,84 +106,93 @@ whitespace characters.
 -}
 ifBlank : (subject -> String) -> error -> Validator error subject
 ifBlank subjectToString error =
-    let
-        getErrors subject =
-            if isBlank (subjectToString subject) then
-                [ error ]
-            else
-                []
-    in
-    Validator getErrors
+    ifTrue (\subject -> isBlank (subjectToString subject)) error
 
 
 {-| Return an error if the given `String` cannot be parsed as an `Int`.
 -}
 ifNotInt : (subject -> String) -> error -> Validator error subject
 ifNotInt subjectToString error =
-    let
-        getErrors subject =
-            if isInt (subjectToString subject) then
-                []
-            else
-                [ error ]
-    in
-    Validator getErrors
+    ifFalse (\subject -> isInt (subjectToString subject)) error
 
 
-{-| Return an error if the given `List` is empty.
+{-| Return an error if a `List` is empty.
 -}
-ifEmptyList : error -> Validator error (List a)
-ifEmptyList =
-    ifInvalid List.isEmpty
+ifEmptyList : (subject -> List a) -> error -> Validator error subject
+ifEmptyList subjectToList error =
+    ifTrue (\subject -> List.isEmpty (subjectToList subject)) error
 
 
-{-| Return an error if the given `Dict` is empty.
+{-| Return an error if a `Dict` is empty.
 -}
-ifEmptyDict : error -> Validator error (Dict comparable v)
-ifEmptyDict error =
-    ifInvalid Dict.isEmpty error
+ifEmptyDict : (subject -> Dict comparable v) -> error -> Validator error subject
+ifEmptyDict subjectToDict error =
+    ifTrue (\subject -> Dict.isEmpty (subjectToDict subject)) error
 
 
-{-| Return an error if the given `Set` is empty.
+{-| Return an error if a `Set` is empty.
 -}
-ifEmptySet : error -> Validator error (Set comparable)
-ifEmptySet error =
-    ifInvalid Set.isEmpty error
+ifEmptySet : (subject -> Set comparable) -> error -> Validator error subject
+ifEmptySet subjectToSet error =
+    ifTrue (\subject -> Set.isEmpty (subjectToSet subject)) error
 
 
-{-| Return an error if given a `Maybe` that is `Nothing`.
+{-| Return an error if a `Maybe` is `Nothing`.
 -}
-ifNothing : error -> Validator error (Maybe a)
-ifNothing error =
-    ifInvalid isNothing error
+ifNothing : (subject -> Maybe a) -> error -> Validator error subject
+ifNothing subjectToMaybe error =
+    ifTrue (\subject -> subjectToMaybe subject == Nothing) error
 
 
-{-| Return an error if the given email string is malformed.
+{-| Return an error if an email address is malformed.
 -}
-ifInvalidEmail : error -> Validator error String
-ifInvalidEmail error =
-    ifInvalid isInvalidEmail error
+ifInvalidEmail : (subject -> String) -> error -> Validator error subject
+ifInvalidEmail subjectToEmail error =
+    ifFalse (\subject -> isValidEmail (subjectToEmail subject)) error
 
 
-{-| Return an error if the given predicate returns `True` for the given
+{-| Return an error if a predicate returns `True` for the given
 subject.
 
-    import Validate exposing (ifInvalid)
+    import Validate exposing (ifTrue)
 
     modelValidator : Validator Model String
     modelValidator =
-        ifInvalid (\model -> countSelected model < 2)
+        ifTrue (\model -> countSelected model < 2)
             "Please select at least two."
 
 -}
-ifInvalid : (subject -> Bool) -> error -> Validator error subject
-ifInvalid test error =
+ifTrue : (subject -> Bool) -> error -> Validator error subject
+ifTrue test error =
     let
         getErrors subject =
             if test subject then
                 [ error ]
             else
                 []
+    in
+    Validator getErrors
+
+
+{-| Return an error if a predicate returns `False` for the given
+subject.
+
+    import Validate exposing (ifFalse)
+
+    modelValidator : Validator Model String
+    modelValidator =
+        ifFalse (\model -> countSelected model >= 2)
+            "Please select at least two."
+
+-}
+ifFalse : (subject -> Bool) -> error -> Validator error subject
+ifFalse test error =
+    let
+        getErrors subject =
+            if test subject then
+                []
+            else
+                [ error ]
     in
     Validator getErrors
 
@@ -306,18 +316,3 @@ validEmail : Regex
 validEmail =
     Regex.regex "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
         |> Regex.caseInsensitive
-
-
-isInvalidEmail : String -> Bool
-isInvalidEmail email =
-    not (isValidEmail email)
-
-
-isNothing : Maybe a -> Bool
-isNothing subject =
-    case subject of
-        Just _ ->
-            False
-
-        Nothing ->
-            True
