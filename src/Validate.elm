@@ -1,4 +1,18 @@
-module Validate exposing (Validator, all, any, eager, ifBlank, ifEmptyDict, ifEmptyList, ifEmptySet, ifInvalid, ifInvalidEmail, ifNotInt, ifNothing)
+module Validate
+    exposing
+        ( Validator
+        , all
+        , any
+        , eager
+        , ifBlank
+        , ifEmptyDict
+        , ifEmptyList
+        , ifEmptySet
+        , ifInvalid
+        , ifInvalidEmail
+        , ifNotInt
+        , ifNothing
+        )
 
 {-| Convenience functions for validating data.
 
