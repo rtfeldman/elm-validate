@@ -26,10 +26,10 @@ modelValidator =
         ]
 
 
--- Evaluates to True
 validate modelValidator
     { name = "Sam", email = "", age = "abc", selections = [ "cats" ] }
     == [ "Please enter an email address.", "Age must be a whole number." ]
+    --> True
 ```
 
 You can represent your errors however you like. One nice approach is to use
@@ -54,10 +54,10 @@ type alias Model =
     { name : String, email : String, age : String }
 
 
--- Evaluates to True
 validate modelValidator
     { name = "Sam", email = "", age = "abc", selections = [ "cats" ] }
     == [ ( Email, "Please enter an email address." )
        , ( Age, "Age must be a whole number." )
        ]
+    --> True
 ```
