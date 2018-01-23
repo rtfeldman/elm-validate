@@ -3,7 +3,7 @@ module Validate
         ( Validator
         , all
         , any
-        , eager
+        , firstError
         , ifBlank
         , ifEmptyDict
         , ifEmptyList
@@ -33,7 +33,7 @@ module Validate
 
 # Combining validators
 
-@docs all, any, eager
+@docs all, any, firstError
 
 
 # Checking values directly
@@ -221,8 +221,8 @@ all validators =
 {-| Run each of the given validators, in order, stopping after the first error
 and returning it. If no errors are encountered, return `Nothing`.
 -}
-eager : List (Validator error subject) -> subject -> Maybe error
-eager validators subject =
+firstError : List (Validator error subject) -> subject -> Maybe error
+firstError validators subject =
     case validators of
         [] ->
             Nothing
@@ -230,7 +230,7 @@ eager validators subject =
         (Validator getErrors) :: others ->
             case getErrors subject of
                 [] ->
-                    eager others subject
+                    firstError others subject
 
                 error :: _ ->
                     Just error
