@@ -1,9 +1,6 @@
 module SignupForm exposing (..)
 
-import Validate exposing (..)
-
-
--- Example Using Library --
+import Validate exposing (Validator, ifBlank, ifNotInt, validate)
 
 
 type alias Model =
@@ -16,19 +13,16 @@ type Field
     | Age
 
 
-validateModel : Model -> List ( Field, String )
-validateModel =
+modelValidator : Validator ( Field, String ) Model
+modelValidator =
     Validate.all
-        [ .name >> ifBlank (Name => "Please enter a name.")
-        , .email >> ifBlank (Email => "Please enter an email address.")
-        , .age >> ifNotInt (Age => "Age must be a whole number.")
+        [ ifBlank .name ( Name, "Please enter a name." )
+        , ifBlank .email ( Email, "Please enter an email address." )
+        , ifNotInt .age ( Age, "Age must be a whole number." )
         ]
 
 
+result : Bool
 result =
-    validateModel { name = "Richard", email = "", age = "abc" }
+    validate modelValidator { name = "Richard", email = "", age = "abc" }
         == [ ( Email, "Please enter an email address." ), ( Age, "Age must be a whole number." ) ]
-
-
-(=>) =
-    (,)
