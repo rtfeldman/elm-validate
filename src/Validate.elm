@@ -12,6 +12,8 @@ module Validate
         , ifInvalidEmail
         , ifNotInt
         , ifNothing
+        , isBlank
+        , isValidEmail
         , validate
         )
 
@@ -23,14 +25,19 @@ module Validate
 @docs Validator, validate
 
 
-# Validating parts of a subject
+# Creating validators
 
-@docs ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail
+@docs ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifNothing, ifInvalidEmail, ifInvalid
 
 
 # Combining validators
 
 @docs all, any, eager
+
+
+# Checking values directly
+
+@docs isBlank, isValidEmail
 
 -}
 
@@ -40,14 +47,159 @@ import Set exposing (Set)
 import String
 
 
-{-| A `Validator` is a function which takes a subject and returns a list of errors
-describing anything invalid about that subject.
+-- VALIDATING A SUBJECT --
 
+
+{-| A `Validator` contains a function which takes a subject and returns a list
+of errors describing anything invalid about that subject.
+
+Pass it to [`validate`](#validate) to get the list of errors.
 An empty error list means the subject was valid.
 
 -}
 type Validator error subject
     = Validator (subject -> List error)
+
+
+{-| Return an error if the given predicate returns `True` for the given
+subject.
+
+    import Validate exposing (ifBlank, ifNotInt, validate)
+
+    errors : Model -> List String
+    errors model =
+        validate modelValidator model
+
+    modelValidator : Validator Model (List String)
+    modelValidator =
+        Validate.all
+            [ ifBlank .name "Please enter a name."
+            , ifBlank .email "Please enter an email address."
+            , ifNotInt .age "Age must be a whole number."
+            ]
+
+-}
+validate : Validator error subject -> subject -> List error
+validate (Validator getErrors) subject =
+    getErrors subject
+
+
+
+-- CONSTRUCTING VALIDATORS --
+
+
+{-| Return an error if the given `String` is empty, or if it contains only
+whitespace characters.
+
+    import Validate exposing (ifBlank, ifNotInt)
+
+    modelValidator : Validator Model (List String)
+    modelValidator =
+        Validate.all
+            [ ifBlank .name "Please enter a name."
+            , ifBlank .email "Please enter an email address."
+            , ifNotInt .age "Age must be a whole number."
+            ]
+
+-}
+ifBlank : (subject -> String) -> error -> Validator error subject
+ifBlank subjectToString error =
+    let
+        getErrors subject =
+            if isBlank (subjectToString subject) then
+                [ error ]
+            else
+                []
+    in
+    Validator getErrors
+
+
+{-| Return an error if the given `String` cannot be parsed as an `Int`.
+-}
+ifNotInt : (subject -> String) -> error -> Validator error subject
+ifNotInt subjectToString error =
+    let
+        getErrors subject =
+            case String.toInt (subjectToString subject) of
+                Ok _ ->
+                    []
+
+                Err _ ->
+                    [ error ]
+    in
+    Validator getErrors
+
+
+{-| Return an error if the given `List` is empty.
+-}
+ifEmptyList : error -> Validator error (List a)
+ifEmptyList =
+    ifInvalid List.isEmpty
+
+
+{-| Return an error if the given `Dict` is empty.
+-}
+ifEmptyDict : error -> Validator error (Dict comparable v)
+ifEmptyDict =
+    ifInvalid Dict.isEmpty
+
+
+{-| Return an error if the given `Set` is empty.
+-}
+ifEmptySet : error -> Validator error (Set comparable)
+ifEmptySet =
+    ifInvalid Set.isEmpty
+
+
+isNothing : Maybe a -> Bool
+isNothing subject =
+    case subject of
+        Just _ ->
+            False
+
+        Nothing ->
+            True
+
+
+{-| Return an error if given a `Maybe` that is `Nothing`.
+-}
+ifNothing : error -> Validator error (Maybe a)
+ifNothing =
+    ifInvalid isNothing
+
+
+{-| Return an error if the given email string is malformed.
+-}
+ifInvalidEmail : error -> Validator error String
+ifInvalidEmail =
+    ifInvalid (not << isValidEmail)
+
+
+{-| Return an error if the given predicate returns `True` for the given
+subject.
+
+    import Validate exposing (ifInvalid)
+
+    modelValidator : Validator Model (List String)
+    modelValidator =
+        ifInvalid (\model -> countSelected model < 2)
+            "Please select at least two."
+
+-}
+ifInvalid : (subject -> Bool) -> error -> Validator error subject
+ifInvalid test error =
+    let
+        getErrors subject =
+            if test subject then
+                [ error ]
+            else
+                []
+    in
+    Validator getErrors
+
+
+
+-- COMBINING VALIDATORS --
 
 
 {-| Run each of the given validators, in order, and return their concatenated
@@ -113,152 +265,40 @@ any validators subject =
                     False
 
 
-{-| Return an error if the given `String` is empty, or if it contains only
-whitespace characters.
 
-    import Validate exposing (ifBlank, ifNotInt)
+-- CHECKING VALUES DIRECTLY --
 
-    modelValidator : Validator Model (List String)
-    modelValidator =
-        Validate.all
-            [ ifBlank .name "Please enter a name."
-            , ifBlank .email "Please enter an email address."
-            , ifNotInt .age "Age must be a whole number."
-            ]
+
+{-| Returns `True` if the given string is nothing but whitespace.
+
+[`ifBlank`](#ifBlank) uses this under the hood.
 
 -}
-ifBlank : (subject -> String) -> error -> Validator error subject
-ifBlank subjectToString error =
-    let
-        getErrors subject =
-            if isBlank (subjectToString subject) then
-                [ error ]
-            else
-                []
-    in
-    Validator getErrors
-
-
 isBlank : String -> Bool
 isBlank str =
-    Regex.contains (Regex.regex "^\\s*$") str
+    Regex.contains lacksNonWhitespaceChars str
 
 
-{-| Return an error if the given `String` cannot be parsed as an `Int`.
+{-| Returns `True` if the email is malformed.
+
+[`ifInvalidEmail`](#ifInvalidEmail) uses this under the hood.
+
 -}
-ifNotInt : (subject -> String) -> error -> Validator error subject
-ifNotInt subjectToString error =
-    let
-        getErrors subject =
-            case String.toInt (subjectToString subject) of
-                Ok _ ->
-                    []
-
-                Err _ ->
-                    [ error ]
-    in
-    Validator getErrors
-
-
-{-| Return an error if the given `List` is empty.
--}
-ifEmptyList : error -> Validator error (List a)
-ifEmptyList =
-    ifInvalid List.isEmpty
-
-
-{-| Return an error if the given `Dict` is empty.
--}
-ifEmptyDict : error -> Validator error (Dict comparable v)
-ifEmptyDict =
-    ifInvalid Dict.isEmpty
-
-
-{-| Return an error if the given `Set` is empty.
--}
-ifEmptySet : error -> Validator error (Set comparable)
-ifEmptySet =
-    ifInvalid Set.isEmpty
-
-
-isNothing : Maybe a -> Bool
-isNothing subject =
-    case subject of
-        Just _ ->
-            False
-
-        Nothing ->
-            True
-
-
-{-| Return an error if given a `Maybe` that is `Nothing`.
--}
-ifNothing : error -> Validator error (Maybe a)
-ifNothing =
-    ifInvalid isNothing
-
-
 isValidEmail : String -> Bool
-isValidEmail =
-    let
-        validEmail =
-            Regex.regex "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
-                |> Regex.caseInsensitive
-    in
-    Regex.contains validEmail
+isValidEmail email =
+    Regex.contains validEmail email
 
 
-{-| Return an error if the given email string is malformed.
--}
-ifInvalidEmail : error -> Validator error String
-ifInvalidEmail =
-    ifInvalid (not << isValidEmail)
+
+-- INTERNAL HELPERS --
 
 
-{-| Return an error if the given predicate returns `True` for the given
-subject.
-
-    import Validate exposing (ifBlank, ifNotInt)
-
-    modelValidator : Validator Model (List String)
-    modelValidator =
-        Validate.all
-            [ ifInvalid .name "Please enter a name."
-            , ifBlank .email "Please enter an email address."
-            , ifNotInt .age "Age must be a whole number."
-            ]
-
--}
-ifInvalid : (subject -> Bool) -> error -> Validator error subject
-ifInvalid test error =
-    let
-        getErrors subject =
-            if test subject then
-                [ error ]
-            else
-                []
-    in
-    Validator getErrors
+lacksNonWhitespaceChars : Regex
+lacksNonWhitespaceChars =
+    Regex.regex "^\\s*$"
 
 
-{-| Return an error if the given predicate returns `True` for the given
-subject.
-
-    import Validate exposing (ifBlank, ifNotInt, validate)
-
-    errors : Model -> List String
-    errors model =
-        validate modelValidator model
-
-    modelValidator : Validator Model (List String)
-    modelValidator =
-        Validate.all
-            [ ifBlank .name "Please enter a name."
-            , ifBlank .email "Please enter an email address."
-            , ifNotInt .age "Age must be a whole number."
-            ]
-
--}
-validate : Validator error subject -> subject -> List error
-validate (Validator getErrors) subject =
-    getErrors subject
+validEmail : Regex
+validEmail =
+    Regex.regex "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+        |> Regex.caseInsensitive
