@@ -1,25 +1,30 @@
-module Validate exposing (Validator, all, any, eager, ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail)
+module Validate exposing (Validator, all, any, eager, ifBlank, ifEmptyDict, ifEmptyList, ifEmptySet, ifInvalid, ifInvalidEmail, ifNotInt, ifNothing)
 
 {-| Convenience functions for validating data.
 
+
 # Validating a subject
+
 @docs Validator, ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail
 
 
 # Combining validators
+
 @docs all, any, eager
+
 -}
 
-import String
-import Regex
 import Dict exposing (Dict)
+import Regex
 import Set exposing (Set)
+import String
 
 
 {-| A `Validator` is a function which takes a subject and returns a list of errors
 describing anything invalid about that subject.
 
 An empty error list means the subject was valid.
+
 -}
 type alias Validator error subject =
     subject -> List error
@@ -34,11 +39,11 @@ all validators =
         validator subject =
             let
                 accumulateErrors currentValidator totalErrors =
-                    totalErrors ++ (currentValidator subject)
+                    totalErrors ++ currentValidator subject
             in
-                List.foldl accumulateErrors [] validators
+            List.foldl accumulateErrors [] validators
     in
-        validator
+    validator
 
 
 {-| Run each of the given validators, in order, stopping after the first error
@@ -147,7 +152,7 @@ isValidEmail =
             Regex.regex "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
                 |> Regex.caseInsensitive
     in
-        Regex.contains validEmail
+    Regex.contains validEmail
 
 
 {-| Return an error if the given email string is malformed.
@@ -169,4 +174,4 @@ ifInvalid test error =
             else
                 []
     in
-        validator
+    validator
