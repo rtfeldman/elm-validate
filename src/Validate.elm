@@ -12,6 +12,7 @@ module Validate
         , ifInvalidEmail
         , ifNotInt
         , ifNothing
+        , validate
         )
 
 {-| Convenience functions for validating data.
@@ -19,7 +20,12 @@ module Validate
 
 # Validating a subject
 
-@docs Validator, ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail
+@docs Validator, validate
+
+
+# Validating parts of a subject
+
+@docs ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifInvalid, ifNothing, ifInvalidEmail
 
 
 # Combining validators
@@ -29,7 +35,7 @@ module Validate
 -}
 
 import Dict exposing (Dict)
-import Regex
+import Regex exposing (Regex)
 import Set exposing (Set)
 import String
 
@@ -46,14 +52,25 @@ type Validator error subject
 
 {-| Run each of the given validators, in order, and return their concatenated
 error lists.
+
+    import Validate exposing (ifBlank, ifNotInt)
+
+    modelValidator : Validator Model (List String)
+    modelValidator =
+        Validate.all
+            [ ifBlank .name "Please enter a name."
+            , ifBlank .email "Please enter an email address."
+            , ifNotInt .age "Age must be a whole number."
+            ]
+
 -}
 all : List (Validator error subject) -> Validator error subject
 all validators =
     let
         validator subject =
             let
-                accumulateErrors (Validator validate) totalErrors =
-                    totalErrors ++ validate subject
+                accumulateErrors (Validator getErrors) totalErrors =
+                    totalErrors ++ getErrors subject
             in
             List.foldl accumulateErrors [] validators
     in
@@ -69,8 +86,8 @@ eager validators subject =
         [] ->
             Nothing
 
-        (Validator validate) :: others ->
-            case validate subject of
+        (Validator getErrors) :: others ->
+            case getErrors subject of
                 [] ->
                     eager others subject
 
@@ -87,8 +104,8 @@ any validators subject =
         [] ->
             True
 
-        validator :: others ->
-            case validator subject of
+        (Validator getErrors) :: others ->
+            case getErrors subject of
                 [] ->
                     any others subject
 
@@ -98,27 +115,49 @@ any validators subject =
 
 {-| Return an error if the given `String` is empty, or if it contains only
 whitespace characters.
+
+    import Validate exposing (ifBlank, ifNotInt)
+
+    modelValidator : Validator Model (List String)
+    modelValidator =
+        Validate.all
+            [ ifBlank .name "Please enter a name."
+            , ifBlank .email "Please enter an email address."
+            , ifNotInt .age "Age must be a whole number."
+            ]
+
 -}
-ifBlank : error -> Validator error String
-ifBlank =
-    ifInvalid (Regex.contains lacksNonWhitespaceChars)
+ifBlank : (subject -> String) -> error -> Validator error subject
+ifBlank subjectToString error =
+    let
+        getErrors subject =
+            if isBlank (subjectToString subject) then
+                [ error ]
+            else
+                []
+    in
+    Validator getErrors
 
 
-lacksNonWhitespaceChars : Regex.Regex
-lacksNonWhitespaceChars =
-    Regex.regex "^\\s*$"
+isBlank : String -> Bool
+isBlank str =
+    Regex.contains (Regex.regex "^\\s*$") str
 
 
 {-| Return an error if the given `String` cannot be parsed as an `Int`.
 -}
-ifNotInt : error -> Validator error String
-ifNotInt error subject =
-    case String.toInt subject of
-        Ok _ ->
-            []
+ifNotInt : (subject -> String) -> error -> Validator error subject
+ifNotInt subjectToString error =
+    let
+        getErrors subject =
+            case String.toInt (subjectToString subject) of
+                Ok _ ->
+                    []
 
-        Err _ ->
-            [ error ]
+                Err _ ->
+                    [ error ]
+    in
+    Validator getErrors
 
 
 {-| Return an error if the given `List` is empty.
@@ -178,14 +217,48 @@ ifInvalidEmail =
 
 {-| Return an error if the given predicate returns `True` for the given
 subject.
+
+    import Validate exposing (ifBlank, ifNotInt)
+
+    modelValidator : Validator Model (List String)
+    modelValidator =
+        Validate.all
+            [ ifInvalid .name "Please enter a name."
+            , ifBlank .email "Please enter an email address."
+            , ifNotInt .age "Age must be a whole number."
+            ]
+
 -}
 ifInvalid : (subject -> Bool) -> error -> Validator error subject
 ifInvalid test error =
     let
-        validator subject =
+        getErrors subject =
             if test subject then
                 [ error ]
             else
                 []
     in
-    validator
+    Validator getErrors
+
+
+{-| Return an error if the given predicate returns `True` for the given
+subject.
+
+    import Validate exposing (ifBlank, ifNotInt, validate)
+
+    errors : Model -> List String
+    errors model =
+        validate modelValidator model
+
+    modelValidator : Validator Model (List String)
+    modelValidator =
+        Validate.all
+            [ ifBlank .name "Please enter a name."
+            , ifBlank .email "Please enter an email address."
+            , ifNotInt .age "Age must be a whole number."
+            ]
+
+-}
+validate : Validator error subject -> subject -> List error
+validate (Validator getErrors) subject =
+    getErrors subject
