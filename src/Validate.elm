@@ -13,6 +13,7 @@ module Validate
         , ifNotInt
         , ifNothing
         , isBlank
+        , isInt
         , isValidEmail
         , validate
         )
@@ -37,7 +38,7 @@ module Validate
 
 # Checking values directly
 
-@docs isBlank, isValidEmail
+@docs isBlank, isInt, isValidEmail
 
 -}
 
@@ -120,12 +121,10 @@ ifNotInt : (subject -> String) -> error -> Validator error subject
 ifNotInt subjectToString error =
     let
         getErrors subject =
-            case String.toInt (subjectToString subject) of
-                Ok _ ->
-                    []
-
-                Err _ ->
-                    [ error ]
+            if isInt (subjectToString subject) then
+                []
+            else
+                [ error ]
     in
     Validator getErrors
 
@@ -287,6 +286,21 @@ isBlank str =
 isValidEmail : String -> Bool
 isValidEmail email =
     Regex.contains validEmail email
+
+
+{-| Returns `True` if `String.toInt` on the given string returns an `Ok`.
+
+[`ifNotInt`](#ifNotInt) uses this under the hood.
+
+-}
+isInt : String -> Bool
+isInt str =
+    case String.toInt str of
+        Ok _ ->
+            True
+
+        Err _ ->
+            False
 
 
 
