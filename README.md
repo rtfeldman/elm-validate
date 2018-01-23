@@ -2,51 +2,62 @@
 
 `elm-validate` provides convenience functions for validating data.
 
-It is based around the idea of a `Validator` - a function which accepts a
+It is based around the idea of a `Validator`, which runs checks on a
 subject and returns a list of errors representing anything invalid about
 that subject. If the list is empty, the subject is valid.
 
 For example:
 
 ```elm
-validateModel : Model -> List String
-validateModel =
-    Validate.all
-        [ .name  >> ifBlank "Please enter a name."
-        , .email >> ifBlank "Please enter an email address."
-        , .age   >> ifNotInt "Age must be a whole number."
-        ]
+import Validate exposing (ifBlank, ifNotInt, validate)
+
 
 type alias Model =
-    { name : String, email : String, age : String }
+    { name : String, email : String, age : String, selections : List String }
+
+
+modelValidator : Validator Model String
+modelValidator =
+    Validate.all
+        [ ifBlank .name "Please enter a name."
+        , ifBlank .email "Please enter an email address."
+        , ifNotInt .age "Age must be a whole number."
+        , ifEmptyList .selections "Please select at least one."
+        ]
+
 
 -- Evaluates to True
-validateModel { name = "Sam", email = "", age = "abc" }
-    == ["Please enter an email address.", "Age must be a whole number."]
-
+validate modelValidator
+    { name = "Sam", email = "", age = "abc", selections = [ "cats" ] }
+    == [ "Please enter an email address.", "Age must be a whole number." ]
 ```
 
-`elm-validate` is not opinionated about how you represent your errors.
-
-For example, you might want to represent them as a tuple of the error message
-as well as the field responsible for the error:
+You can represent your errors however you like. One nice approach is to use
+tuple of the error message and the field responsible for the error:
 
 ```elm
-validateModel : Model -> List (Field, String)
-validateModel =
+type Field =
+    Name | Email | Age | Selections
+
+
+modelValidator : Validator ( Field, String ) Model
+modelValidator =
     Validate.all
-        [ .name  >> ifBlank (Name, "Please enter a name.")
-        , .email >> ifBlank (Email, "Please enter an email address.")
-        , .age   >> ifNotInt (Age, "Age must be a whole number.")
+        [ ifBlank .name ( Name, "Please enter a name." )
+        , ifBlank .email ( Email, "Please enter an email address." )
+        , ifNotInt .age ( Age, "Age must be a whole number." )
+        , ifEmptyList .selections ( Selections, "Please select at least one." )
         ]
 
-type Field =
-    Name | Email | Age
 
 type alias Model =
     { name : String, email : String, age : String }
 
+
 -- Evaluates to True
-validateModel { name = "Sam", email = "", age = "abc" }
-    == [(Email, "Please enter an email address."), (Age, "Age must be a whole number.")]
+validate modelValidator
+    { name = "Sam", email = "", age = "abc", selections = [ "cats" ] }
+    == [ ( Email, "Please enter an email address." )
+       , ( Age, "Age must be a whole number." )
+       ]
 ```

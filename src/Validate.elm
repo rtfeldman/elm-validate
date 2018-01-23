@@ -71,12 +71,13 @@ subject.
     errors model =
         validate modelValidator model
 
-    modelValidator : Validator Model (List String)
+    modelValidator : Validator Model String
     modelValidator =
         Validate.all
             [ ifBlank .name "Please enter a name."
             , ifBlank .email "Please enter an email address."
             , ifNotInt .age "Age must be a whole number."
+            , ifEmptyList .selections "Please select at least one."
             ]
 
 -}
@@ -94,12 +95,11 @@ whitespace characters.
 
     import Validate exposing (ifBlank, ifNotInt)
 
-    modelValidator : Validator Model (List String)
+    modelValidator : Validator Model String
     modelValidator =
         Validate.all
             [ ifBlank .name "Please enter a name."
             , ifBlank .email "Please enter an email address."
-            , ifNotInt .age "Age must be a whole number."
             ]
 
 -}
@@ -169,7 +169,7 @@ subject.
 
     import Validate exposing (ifInvalid)
 
-    modelValidator : Validator Model (List String)
+    modelValidator : Validator Model String
     modelValidator =
         ifInvalid (\model -> countSelected model < 2)
             "Please select at least two."
@@ -196,7 +196,7 @@ error lists.
 
     import Validate exposing (ifBlank, ifNotInt)
 
-    modelValidator : Validator Model (List String)
+    modelValidator : Validator Model String
     modelValidator =
         Validate.all
             [ ifBlank .name "Please enter a name."
