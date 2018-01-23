@@ -40,8 +40,8 @@ describing anything invalid about that subject.
 An empty error list means the subject was valid.
 
 -}
-type alias Validator error subject =
-    subject -> List error
+type Validator error subject
+    = Validator (subject -> List error)
 
 
 {-| Run each of the given validators, in order, and return their concatenated
@@ -52,12 +52,12 @@ all validators =
     let
         validator subject =
             let
-                accumulateErrors currentValidator totalErrors =
-                    totalErrors ++ currentValidator subject
+                accumulateErrors (Validator validate) totalErrors =
+                    totalErrors ++ validate subject
             in
             List.foldl accumulateErrors [] validators
     in
-    validator
+    Validator validator
 
 
 {-| Run each of the given validators, in order, stopping after the first error
@@ -69,8 +69,8 @@ eager validators subject =
         [] ->
             Nothing
 
-        validator :: others ->
-            case validator subject of
+        (Validator validate) :: others ->
+            case validate subject of
                 [] ->
                     eager others subject
 
