@@ -21,6 +21,26 @@ module Validate
 
 {-| Convenience functions for validating data.
 
+    import Validate exposing (ifBlank, ifNotInt, validate)
+
+    type Field = Name | Email | Age
+
+    type alias Model = { name : String, email : String, age : String }
+
+    modelValidator : Validator String Model
+    modelValidator =
+        Validate.all
+            [ ifBlank .name "Please enter a name."
+            , Validate.firstError
+                [ ifBlank .email "Please enter an email address."
+                , ifInvalidEmail .email "This is not a valid email address."
+                ]
+            , ifNotInt .age "Age must be a whole number."
+            ]
+
+    validate modelValidator { name = "Sam", email = "blah", age = "abc" }
+        --> [ "This is not a valid email address.", "Age must be a whole number." ]
+
 
 # Validating a subject
 
@@ -68,6 +88,10 @@ subject.
 
     import Validate exposing (ifBlank, ifNotInt, validate)
 
+    type Field = Name | Email | Age
+
+    type alias Model = { name : String, email : String, age : String }
+
     modelValidator : Validator ( Field, String ) Model
     modelValidator =
         Validate.all
@@ -76,10 +100,8 @@ subject.
             , ifNotInt .age ( Age, "Age must be a whole number." )
             ]
 
-    validate modelValidator
-        { name = "Sam", email = "", age = "abc", selections = [ "cats" ] }
-        == [ "Please enter an email address.", "Age must be a whole number." ]
-        --> True
+    validate modelValidator { name = "Sam", email = "", age = "abc" }
+        --> [ ( Email, "Please enter an email address." ), ( Age, "Age must be a whole number." ) ]
 
 -}
 validate : Validator error subject -> subject -> List error
@@ -218,32 +240,69 @@ error lists.
 all : List (Validator error subject) -> Validator error subject
 all validators =
     let
-        validator subject =
+        newGetErrors subject =
             let
                 accumulateErrors (Validator getErrors) totalErrors =
                     totalErrors ++ getErrors subject
             in
             List.foldl accumulateErrors [] validators
     in
-    Validator validator
+    Validator newGetErrors
 
 
 {-| Run each of the given validators, in order, stopping after the first error
 and returning it. If no errors are encountered, return `Nothing`.
+
+    import Validate exposing (ifBlank, ifInvalidEmail, ifNotInt)
+
+
+    type alias Model =
+        { email : String, age : String }
+
+
+    modelValidator : Validator String Model
+    modelValidator =
+        Validate.all
+            [ Validate.firstError
+                [ ifBlank .email "Please enter an email address."
+                , ifInvalidEmail .email "This is not a valid email address."
+                ]
+            , ifNotInt .age "Age must be a whole number."
+            ]
+
+
+    validate modelValidator { email = " ", age = "5" }
+        --> [ "Please enter an email address." ]
+
+    validate modelValidator { email = "blah", age = "5" }
+        --> [ "This is not a valid email address." ]
+
+    validate modelValidator { email = "foo@bar.com", age = "5" }
+        --> []
+
 -}
-firstError : List (Validator error subject) -> subject -> Maybe error
-firstError validators subject =
+firstError : List (Validator error subject) -> Validator error subject
+firstError validators =
+    let
+        getErrors subject =
+            firstErrorHelp validators subject
+    in
+    Validator getErrors
+
+
+firstErrorHelp : List (Validator error subject) -> subject -> List error
+firstErrorHelp validators subject =
     case validators of
         [] ->
-            Nothing
+            []
 
-        (Validator getErrors) :: others ->
+        (Validator getErrors) :: rest ->
             case getErrors subject of
                 [] ->
-                    firstError others subject
+                    firstErrorHelp rest subject
 
-                error :: _ ->
-                    Just error
+                errors ->
+                    errors
 
 
 {-| Return `True` if none of the given validators returns any errors for the given
