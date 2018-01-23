@@ -139,39 +139,29 @@ ifEmptyList =
 {-| Return an error if the given `Dict` is empty.
 -}
 ifEmptyDict : error -> Validator error (Dict comparable v)
-ifEmptyDict =
-    ifInvalid Dict.isEmpty
+ifEmptyDict error =
+    ifInvalid Dict.isEmpty error
 
 
 {-| Return an error if the given `Set` is empty.
 -}
 ifEmptySet : error -> Validator error (Set comparable)
-ifEmptySet =
-    ifInvalid Set.isEmpty
-
-
-isNothing : Maybe a -> Bool
-isNothing subject =
-    case subject of
-        Just _ ->
-            False
-
-        Nothing ->
-            True
+ifEmptySet error =
+    ifInvalid Set.isEmpty error
 
 
 {-| Return an error if given a `Maybe` that is `Nothing`.
 -}
 ifNothing : error -> Validator error (Maybe a)
-ifNothing =
-    ifInvalid isNothing
+ifNothing error =
+    ifInvalid isNothing error
 
 
 {-| Return an error if the given email string is malformed.
 -}
 ifInvalidEmail : error -> Validator error String
-ifInvalidEmail =
-    ifInvalid (not << isValidEmail)
+ifInvalidEmail error =
+    ifInvalid isInvalidEmail error
 
 
 {-| Return an error if the given predicate returns `True` for the given
@@ -316,3 +306,18 @@ validEmail : Regex
 validEmail =
     Regex.regex "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
         |> Regex.caseInsensitive
+
+
+isInvalidEmail : String -> Bool
+isInvalidEmail email =
+    not (isValidEmail email)
+
+
+isNothing : Maybe a -> Bool
+isNothing subject =
+    case subject of
+        Just _ ->
+            False
+
+        Nothing ->
+            True
