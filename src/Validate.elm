@@ -4,6 +4,7 @@ module Validate
         , all
         , any
         , firstError
+        , fromErrors
         , ifBlank
         , ifEmptyDict
         , ifEmptyList
@@ -49,7 +50,7 @@ module Validate
 
 # Creating validators
 
-@docs ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifNothing, ifInvalidEmail, ifTrue, ifFalse
+@docs ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifNothing, ifInvalidEmail, ifTrue, ifFalse, fromErrors
 
 
 # Combining validators
@@ -215,10 +216,38 @@ ifInvalidEmail subjectToEmail errorFromEmail =
     Validator getErrors
 
 
+{-| Create a custom validator, by providing a function that returns a list of
+errors given a subject.
+
+    import Validate exposing (Validator, fromErrors)
+
+    modelValidator : Validator Model String
+    modelValidator =
+        fromErrors modelToErrors
+
+    modelToErrors : Model -> List String
+    modelToErrors model =
+        let
+            usernameLength =
+                String.length model.username
+        in
+        if usernameLength < minUsernameChars then
+            [ "Username not long enough" ]
+        else if usernameLength > maxUsernameChars then
+            [ "Username too long" ]
+        else
+            []
+
+-}
+fromErrors : (subject -> List error) -> Validator error subject
+fromErrors toErrors =
+    Validator toErrors
+
+
 {-| Return an error if a predicate returns `True` for the given
 subject.
 
-    import Validate exposing (Validator, fromErrors)
+    import Validate exposing (Validator, ifTrue)
 
     modelValidator : Validator Model String
     modelValidator =
