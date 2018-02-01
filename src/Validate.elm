@@ -133,9 +133,20 @@ ifBlank subjectToString error =
 
 {-| Return an error if the given `String` cannot be parsed as an `Int`.
 -}
-ifNotInt : (subject -> String) -> error -> Validator error subject
-ifNotInt subjectToString error =
-    ifFalse (\subject -> isInt (subjectToString subject)) error
+ifNotInt : (subject -> String) -> (String -> error) -> Validator error subject
+ifNotInt subjectToString errorFromString =
+    let
+        getErrors subject =
+            let
+                str =
+                    subjectToString subject
+            in
+            if isInt str then
+                []
+            else
+                [ errorFromString str ]
+    in
+    Validator getErrors
 
 
 {-| Return an error if a `List` is empty.
@@ -168,9 +179,20 @@ ifNothing subjectToMaybe error =
 
 {-| Return an error if an email address is malformed.
 -}
-ifInvalidEmail : (subject -> String) -> error -> Validator error subject
-ifInvalidEmail subjectToEmail error =
-    ifFalse (\subject -> isValidEmail (subjectToEmail subject)) error
+ifInvalidEmail : (subject -> String) -> (String -> error) -> Validator error subject
+ifInvalidEmail subjectToEmail errorFromEmail =
+    let
+        getErrors subject =
+            let
+                email =
+                    subjectToEmail subject
+            in
+            if isValidEmail email then
+                []
+            else
+                [ errorFromEmail email ]
+    in
+    Validator getErrors
 
 
 {-| Return an error if a predicate returns `True` for the given
