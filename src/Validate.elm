@@ -128,7 +128,7 @@ whitespace characters.
 -}
 ifBlank : (subject -> String) -> error -> Validator error subject
 ifBlank subjectToString error =
-    ifTrue (\subject -> isBlank (subjectToString subject)) error
+    ifTrue (\subject -> isBlank (subjectToString subject)) (\_ -> error)
 
 
 {-| Return an error if the given `String` cannot be parsed as an `Int`.
@@ -145,46 +145,37 @@ ifBlank subjectToString error =
 -}
 ifNotInt : (subject -> String) -> (String -> error) -> Validator error subject
 ifNotInt subjectToString errorFromString =
-    let
-        getErrors subject =
-            let
-                str =
-                    subjectToString subject
-            in
-            if isInt str then
-                []
-            else
-                [ errorFromString str ]
-    in
-    Validator getErrors
+    ifFalse
+        (\subject -> isInt (subjectToString subject))
+        (\subject -> errorFromString (subjectToString subject))
 
 
 {-| Return an error if a `List` is empty.
 -}
 ifEmptyList : (subject -> List a) -> error -> Validator error subject
 ifEmptyList subjectToList error =
-    ifTrue (\subject -> List.isEmpty (subjectToList subject)) error
+    ifTrue (\subject -> List.isEmpty (subjectToList subject)) (\_ -> error)
 
 
 {-| Return an error if a `Dict` is empty.
 -}
 ifEmptyDict : (subject -> Dict comparable v) -> error -> Validator error subject
 ifEmptyDict subjectToDict error =
-    ifTrue (\subject -> Dict.isEmpty (subjectToDict subject)) error
+    ifTrue (\subject -> Dict.isEmpty (subjectToDict subject)) (\_ -> error)
 
 
 {-| Return an error if a `Set` is empty.
 -}
 ifEmptySet : (subject -> Set comparable) -> error -> Validator error subject
 ifEmptySet subjectToSet error =
-    ifTrue (\subject -> Set.isEmpty (subjectToSet subject)) error
+    ifTrue (\subject -> Set.isEmpty (subjectToSet subject)) (\_ -> error)
 
 
 {-| Return an error if a `Maybe` is `Nothing`.
 -}
 ifNothing : (subject -> Maybe a) -> error -> Validator error subject
 ifNothing subjectToMaybe error =
-    ifTrue (\subject -> subjectToMaybe subject == Nothing) error
+    ifTrue (\subject -> subjectToMaybe subject == Nothing) (\_ -> error)
 
 
 {-| Return an error if an email address is malformed.
@@ -201,18 +192,9 @@ ifNothing subjectToMaybe error =
 -}
 ifInvalidEmail : (subject -> String) -> (String -> error) -> Validator error subject
 ifInvalidEmail subjectToEmail errorFromEmail =
-    let
-        getErrors subject =
-            let
-                email =
-                    subjectToEmail subject
-            in
-            if isValidEmail email then
-                []
-            else
-                [ errorFromEmail email ]
-    in
-    Validator getErrors
+    ifFalse
+        (\subject -> isValidEmail (subjectToEmail subject))
+        (\subject -> errorFromEmail (subjectToEmail subject))
 
 
 {-| Return an error if a predicate returns `True` for the given
@@ -226,12 +208,12 @@ subject.
             "Please select at least two."
 
 -}
-ifTrue : (subject -> Bool) -> error -> Validator error subject
-ifTrue test error =
+ifTrue : (subject -> Bool) -> (subject -> error) -> Validator error subject
+ifTrue test errorFromSubject =
     let
         getErrors subject =
             if test subject then
-                [ error ]
+                [ errorFromSubject subject ]
             else
                 []
     in
@@ -249,14 +231,14 @@ subject.
             "Please select at least two."
 
 -}
-ifFalse : (subject -> Bool) -> error -> Validator error subject
-ifFalse test error =
+ifFalse : (subject -> Bool) -> (subject -> error) -> Validator error subject
+ifFalse test errorFromSubject =
     let
         getErrors subject =
             if test subject then
                 []
             else
-                [ error ]
+                [ errorFromSubject subject ]
     in
     Validator getErrors
 
