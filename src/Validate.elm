@@ -21,7 +21,7 @@ module Validate
 
 {-| Convenience functions for validating data.
 
-    import Validate exposing (ifBlank, ifNotInt, validate)
+    import Validate exposing (Validator, ifBlank, ifNotInt, validate)
 
     type Field = Name | Email | Age
 
@@ -86,7 +86,7 @@ type Validator error subject
 {-| Return an error if the given predicate returns `True` for the given
 subject.
 
-    import Validate exposing (ifBlank, ifNotInt, validate)
+    import Validate exposing (Validator, ifBlank, ifNotInt, validate)
 
     type Field = Name | Email | Age
 
@@ -116,7 +116,7 @@ validate (Validator getErrors) subject =
 {-| Return an error if the given `String` is empty, or if it contains only
 whitespace characters.
 
-    import Validate exposing (ifBlank, ifNotInt)
+    import Validate exposing (Validator, ifBlank)
 
     modelValidator : Validator Model String
     modelValidator =
@@ -132,6 +132,16 @@ ifBlank subjectToString error =
 
 
 {-| Return an error if the given `String` cannot be parsed as an `Int`.
+
+    import Validate exposing (Validator, ifNotInt)
+
+    modelValidator : Validator Model String
+    modelValidator =
+        Validate.all
+            [ ifNotInt .followers (\_ -> "Please enter a whole number for followers.")
+            , ifNotInt .stars (\stars -> "Stars was \"" ++ stars ++ "\", but it needs to be a whole number.")"
+            ]
+
 -}
 ifNotInt : (subject -> String) -> (String -> error) -> Validator error subject
 ifNotInt subjectToString errorFromString =
@@ -178,6 +188,16 @@ ifNothing subjectToMaybe error =
 
 
 {-| Return an error if an email address is malformed.
+
+    import Validate exposing (Validator, ifBlank, ifNotInt)
+
+    modelValidator : Validator Model String
+    modelValidator =
+        Validate.all
+            [ ifInvalidEmail .primaryEmail (\_ -> "Please enter a valid primary email address.")
+            , ifInvalidEmail .superSecretEmail (\email -> "Unfortunately, \"" ++ email ++ "\" is not a valid Super Secret Email Address.")
+            ]
+
 -}
 ifInvalidEmail : (subject -> String) -> (String -> error) -> Validator error subject
 ifInvalidEmail subjectToEmail errorFromEmail =
@@ -198,7 +218,7 @@ ifInvalidEmail subjectToEmail errorFromEmail =
 {-| Return an error if a predicate returns `True` for the given
 subject.
 
-    import Validate exposing (ifTrue)
+    import Validate exposing (Validator, fromErrors)
 
     modelValidator : Validator Model String
     modelValidator =
@@ -221,7 +241,7 @@ ifTrue test error =
 {-| Return an error if a predicate returns `False` for the given
 subject.
 
-    import Validate exposing (ifFalse)
+    import Validate exposing (Validator, ifFalse)
 
     modelValidator : Validator Model String
     modelValidator =
@@ -248,7 +268,7 @@ ifFalse test error =
 {-| Run each of the given validators, in order, and return their concatenated
 error lists.
 
-    import Validate exposing (ifBlank, ifNotInt)
+    import Validate exposing (Validator, ifBlank, ifNotInt)
 
     modelValidator : Validator Model String
     modelValidator =
@@ -275,7 +295,7 @@ all validators =
 {-| Run each of the given validators, in order, stopping after the first error
 and returning it. If no errors are encountered, return `Nothing`.
 
-    import Validate exposing (ifBlank, ifInvalidEmail, ifNotInt)
+    import Validate exposing (Validator, ifBlank, ifInvalidEmail, ifNotInt)
 
 
     type alias Model =
