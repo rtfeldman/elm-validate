@@ -337,7 +337,7 @@ isBlank str =
     Regex.contains lacksNonWhitespaceChars str
 
 
-{-| Returns `True` if the email is malformed.
+{-| Returns `True` if the email is valid.
 
 [`ifInvalidEmail`](#ifInvalidEmail) uses this under the hood.
 
