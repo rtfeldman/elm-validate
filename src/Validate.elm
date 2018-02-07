@@ -16,6 +16,7 @@ module Validate
         , isBlank
         , isInt
         , isValidEmail
+        , preMap
         , validate
         )
 
@@ -55,6 +56,11 @@ module Validate
 # Combining validators
 
 @docs all, any, firstError
+
+
+# Reusing validators
+
+@docs preMap
 
 
 # Checking values directly
@@ -217,6 +223,33 @@ ifFalse test error =
                 [ error ]
     in
     Validator getErrors
+
+
+
+-- REUSING VALIDATORS --
+
+
+{-| Reuse a validator in a larger context.
+
+    import Validate exposing (ifBlank, preMap)
+
+    type alias User =
+        { name : String
+        }
+
+    nameValidator : Validator String String
+    nameValidator =
+        ifBlank identity
+            "Please enter a name"
+
+    userValidator : Validator String User
+    userValidator =
+        preMap .user nameValidator
+
+-}
+preMap : (large -> small) -> Validator error small -> Validator error large
+preMap f (Validator validator) =
+    Validator (f >> validator)
 
 
 
