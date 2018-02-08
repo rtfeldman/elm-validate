@@ -16,7 +16,7 @@ type alias Model =
     { name : String, email : String, age : String, selections : List String }
 
 
-modelValidator : Validator Model String
+modelValidator : Validator String Model
 modelValidator =
     Validate.all
         [ ifBlank .name "Please enter a name."
