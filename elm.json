@@ -1,0 +1,15 @@
+{
+  "type": "package",
+  "name": "rtfeldman/elm-validate",
+  "summary": "Validate data",
+  "license": "BSD-3-Clause",
+  "version": "3.0.1",
+  "exposed-modules": [
+    "Validate"
+  ],
+  "elm-version": "0.19.0 <= v < 0.20.0",
+  "dependencies": {
+    "elm-lang/core": "6.0.0 <= v < 7.0.0"
+  },
+  "test-dependencies": {}
+}
