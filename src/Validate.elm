@@ -426,11 +426,11 @@ isValidEmail email =
 isInt : String -> Bool
 isInt str =
     case String.toInt str of
-        Ok _ ->
-            True
-
-        Err _ ->
+        Nothing ->
             False
+
+        Just _ ->
+            True
 
 
 
@@ -439,10 +439,12 @@ isInt str =
 
 lacksNonWhitespaceChars : Regex
 lacksNonWhitespaceChars =
-    Regex.regex "^\\s*$"
+    Regex.fromString "^\\s*$"
+        |> Maybe.withDefault Regex.never
 
 
 validEmail : Regex
 validEmail =
-    Regex.regex "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
-        |> Regex.caseInsensitive
+    "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+        |> Regex.fromStringWith { caseInsensitive = True, multiline = False }
+        |> Maybe.withDefault Regex.never
