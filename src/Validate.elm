@@ -1,26 +1,9 @@
-module Validate
-    exposing
-        ( Validator
-        , all
-        , any
-        , firstError
-        , fromErrors
-        , ifBlank
-        , ifEmptyDict
-        , ifEmptyList
-        , ifEmptySet
-        , ifFalse
-        , ifInvalidEmail
-        , ifNotFloat
-        , ifNotInt
-        , ifNothing
-        , ifTrue
-        , isBlank
-        , isFloat
-        , isInt
-        , isValidEmail
-        , validate
-        )
+module Validate exposing
+    ( Validator, validate
+    , ifBlank, ifNotInt, ifNotFloat, ifEmptyList, ifEmptyDict, ifEmptySet, ifNothing, ifInvalidEmail, ifTrue, ifFalse, fromErrors
+    , all, any, firstError
+    , isBlank, isInt, isFloat, isValidEmail
+    )
 
 {-| Convenience functions for validating data.
 
@@ -435,7 +418,7 @@ isBlank str =
 
 isWhitespaceChar : Char -> Bool
 isWhitespaceChar char =
-    char == ' ' || char == '\n' || char == '\t' || char == '\x000D'
+    char == ' ' || char == '\n' || char == '\t' || char == '\u{000D}'
 
 
 {-| Returns `True` if the email is valid.
@@ -471,12 +454,11 @@ isFloat str =
 isInt : String -> Bool
 isInt str =
     case String.toInt str of
-        Ok _ ->
-            True
-
-        Err _ ->
+        Nothing ->
             False
 
+        Just _ ->
+            True
 
 
 
@@ -487,5 +469,6 @@ isInt str =
 -}
 validEmail : Regex
 validEmail =
-    Regex.regex "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
-        |> Regex.caseInsensitive
+    "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+        |> Regex.fromStringWith { caseInsensitive = True, multiline = False }
+        |> Maybe.withDefault Regex.never
