@@ -70,6 +70,7 @@ import Set exposing (Set)
 import String
 
 
+
 -- VALIDATING A SUBJECT --
 
 
@@ -154,6 +155,7 @@ ifNotInt subjectToString errorFromString =
             in
             if isInt str then
                 []
+
             else
                 [ errorFromString str ]
     in
@@ -210,6 +212,7 @@ ifInvalidEmail subjectToEmail errorFromEmail =
             in
             if isValidEmail email then
                 []
+
             else
                 [ errorFromEmail email ]
     in
@@ -233,8 +236,10 @@ errors given a subject.
         in
         if usernameLength < minUsernameChars then
             [ "Username not long enough" ]
+
         else if usernameLength > maxUsernameChars then
             [ "Username too long" ]
+
         else
             []
 
@@ -261,6 +266,7 @@ ifTrue test error =
         getErrors subject =
             if test subject then
                 [ error ]
+
             else
                 []
     in
@@ -284,6 +290,7 @@ ifFalse test error =
         getErrors subject =
             if test subject then
                 []
+
             else
                 [ error ]
     in
