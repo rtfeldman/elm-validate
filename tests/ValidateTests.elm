@@ -43,6 +43,22 @@ email =
         ]
 
 
+date : Test
+date =
+    describe "date"
+        [ test "invalid date is not a valid date" <|
+            \() ->
+                "2018-31-31"
+                    |> Validate.isValidDate
+                    |> Expect.false "Validate.isValidDate should have considered 2018-31-31 an invalid date"
+        , test "valid date is valid" <|
+            \() ->
+                "2018-05-26"
+                    |> Validate.isValidDate
+                    |> Expect.true "Validate.isValidDate should have considered 2018-05-26 a valid date"
+        ]
+
+
 whitespace : Fuzzer String
 whitespace =
     [ ' ', ' ', '\t', '\n' ]
