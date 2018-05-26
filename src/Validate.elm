@@ -191,7 +191,7 @@ ifNothing subjectToMaybe error =
     ifTrue (\subject -> subjectToMaybe subject == Nothing) error
 
 
-{-| Return an error if a `String` is not a parseable date.
+{-| Return an error if a `String` cannot be parsed as `Date`.
 -}
 ifInvalidDate : (subject -> String) -> error -> Validator error subject
 ifInvalidDate subjectToString error =
