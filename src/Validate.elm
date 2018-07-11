@@ -412,7 +412,21 @@ any validators subject =
 -}
 isBlank : String -> Bool
 isBlank str =
-    Regex.contains lacksNonWhitespaceChars str
+    case String.uncons str of
+        Just ( char, rest ) ->
+            if isWhitespaceChar char then
+                isBlank rest
+
+            else
+                False
+
+        Nothing ->
+            True
+
+
+isWhitespaceChar : Char -> Bool
+isWhitespaceChar char =
+    char == ' ' || char == '\n' || char == '\t' || char == '\u{000D}'
 
 
 {-| Returns `True` if the email is valid.
@@ -442,12 +456,6 @@ isInt str =
 
 
 -- INTERNAL HELPERS --
-
-
-lacksNonWhitespaceChars : Regex
-lacksNonWhitespaceChars =
-    Regex.fromString "^\\s*$"
-        |> Maybe.withDefault Regex.never
 
 
 validEmail : Regex
