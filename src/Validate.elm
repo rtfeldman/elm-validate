@@ -116,7 +116,7 @@ validate (Validator getErrors) subject =
 
 
 {-| Return an error if the given `String` is empty, or if it contains only
-whitespace characters.
+spaces, tabs, newlines, or carriage returns.
 
     import Validate exposing (Validator, ifBlank)
 
