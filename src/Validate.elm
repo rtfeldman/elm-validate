@@ -458,6 +458,8 @@ isInt str =
 -- INTERNAL HELPERS --
 
 
+{-| TODO Replace this with a nice Parser implementation!
+-}
 validEmail : Regex
 validEmail =
     "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
