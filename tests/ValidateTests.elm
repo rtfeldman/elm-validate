@@ -43,6 +43,22 @@ email =
         ]
 
 
+float : Test
+float =
+    describe "float"
+        [ test "string with non numbers characters cannot be parsed as `Float`" <|
+            \() ->
+                "a10"
+                    |> Validate.isFloat
+                    |> Expect.false "Validate.isFloat should not have considered a10 a `Float` number"
+        , test "only numbers string can be parsed as `Float`" <|
+            \() ->
+                "10.5"
+                    |> Validate.isFloat
+                    |> Expect.true "Validate.isFloat should have considered 10.5 a `Float` number"
+        ]
+
+
 whitespace : Fuzzer String
 whitespace =
     [ ' ', ' ', '\t', '\n' ]

@@ -11,10 +11,12 @@ module Validate
         , ifEmptySet
         , ifFalse
         , ifInvalidEmail
+        , ifNotFloat
         , ifNotInt
         , ifNothing
         , ifTrue
         , isBlank
+        , isFloat
         , isInt
         , isValidEmail
         , validate
@@ -186,6 +188,13 @@ ifEmptySet subjectToSet error =
 ifNothing : (subject -> Maybe a) -> error -> Validator error subject
 ifNothing subjectToMaybe error =
     ifTrue (\subject -> subjectToMaybe subject == Nothing) error
+
+
+{-| Return an error if a `String` cannot be parsed as an `Float`.
+-}
+ifNotFloat : (subject -> String) -> error -> Validator error subject
+ifNotFloat subjectToString error =
+    ifTrue (\subject -> isFloat (subjectToString subject)) error
 
 
 {-| Return an error if an email address is malformed.
@@ -416,6 +425,21 @@ isBlank str =
 isValidEmail : String -> Bool
 isValidEmail email =
     Regex.contains validEmail email
+
+
+{-| Returns `True` if `String.toFloat` on the given string returns an `Ok`.
+
+[`ifNotFloat`](#ifNotFloat) uses this under the hood.
+
+-}
+isFloat : String -> Bool
+isFloat str =
+    case String.toFloat str of
+        Ok _ ->
+            True
+
+        Err _ ->
+            False
 
 
 {-| Returns `True` if `String.toInt` on the given string returns an `Ok`.
