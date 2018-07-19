@@ -59,3 +59,25 @@ validate modelValidator
     --> , ( Age, "Age must be a whole number." )
     --> ]
 ```
+
+Functions that detect the _absence_ of a value, such as `ifBlank` and `ifEmptyList`, accept an error as the second argument:
+
+```elm
+modelValidator : Validator ( Field, String ) Model
+modelValidator =
+    Validate.all
+        [ ifBlank .name ( Name, "Please enter a name." )
+        , ifEmptyList .selections ( Selections, "Please select at least one." )
+        ]
+```
+
+Functions the detect something _wrong_ with a value, such as `isNotInt` and `isInvalidEmail`, accept a function as the second argument so you can include the incorrect value in the error message:
+
+```elm
+modelValidator : Validator ( Field, String ) Model
+modelValidator =
+    Validate.all
+        [ ifNotInt .count (\value -> ( Count, value ++ " is not an integer." ))
+        , ifInvalidEmail .email (\value -> ( Email, value ++ " is not a valid email address." ))
+        ]
+```
