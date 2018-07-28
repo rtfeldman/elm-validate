@@ -118,7 +118,7 @@ validate (Validator getErrors) subject =
 
 
 {-| Return an error if the given `String` is empty, or if it contains only
-whitespace characters.
+spaces, tabs, newlines, or carriage returns.
 
     import Validate exposing (Validator, ifBlank)
 
@@ -421,7 +421,21 @@ any validators subject =
 -}
 isBlank : String -> Bool
 isBlank str =
-    Regex.contains lacksNonWhitespaceChars str
+    case String.uncons str of
+        Just ( char, rest ) ->
+            if isWhitespaceChar char then
+                isBlank rest
+
+            else
+                False
+
+        Nothing ->
+            True
+
+
+isWhitespaceChar : Char -> Bool
+isWhitespaceChar char =
+    char == ' ' || char == '\n' || char == '\t' || char == '\x000D'
 
 
 {-| Returns `True` if the email is valid.
@@ -465,14 +479,12 @@ isInt str =
 
 
 
--- INTERNAL HELPERS --
+
+-- INTERNAL HELPERS
 
 
-lacksNonWhitespaceChars : Regex
-lacksNonWhitespaceChars =
-    Regex.regex "^\\s*$"
-
-
+{-| TODO Replace this with a nice Parser implementation!
+-}
 validEmail : Regex
 validEmail =
     Regex.regex "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
