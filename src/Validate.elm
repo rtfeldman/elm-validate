@@ -1,5 +1,5 @@
 module Validate exposing
-    ( Validator, validate
+    ( Validator, Valid, validate, fromValid
     , ifBlank, ifNotInt, ifNotFloat, ifEmptyList, ifEmptyDict, ifEmptySet, ifNothing, ifInvalidEmail, ifTrue, ifFalse, fromErrors
     , all, any, firstError
     , isBlank, isInt, isFloat, isValidEmail
@@ -30,7 +30,7 @@ module Validate exposing
 
 # Validating a subject
 
-@docs Validator, validate
+@docs Validator, Valid, validate, fromValid
 
 
 # Creating validators
@@ -55,8 +55,33 @@ import Set exposing (Set)
 import String
 
 
+{-| Guarantees that a subject has been run through a Validator which passed.
 
--- VALIDATING A SUBJECT --
+The only way to obtain one of these is to call `validate`, so if you have a
+`Valid Form`, you can be certain the wrapped `Form` value has been run through
+a `Validator` that returned in no errors.
+
+Once you have a `Valid Form`, you can unwrap the validated `Form` by calling
+[`fromValid`](#fromValid).
+
+This lets you write functions like `sendToServer : Valid Form -> ...`
+which make it impossible to forget to run the form through a `Validator`
+before sending it off to the server!
+
+-}
+type Valid subject
+    = Valid subject
+
+
+{-| Extract the wrapped Valid value.
+-}
+fromValid : Valid subject -> subject
+fromValid (Valid subject) =
+    subject
+
+
+
+-- VALIDATING A SUBJECT
 
 
 {-| A `Validator` contains a function which takes a subject and returns a list
@@ -91,9 +116,14 @@ subject.
         --> [ ( Email, "Please enter an email address." ), ( Age, "Age must be a whole number." ) ]
 
 -}
-validate : Validator error subject -> subject -> List error
+validate : Validator error subject -> subject -> Result (List error) (Valid subject)
 validate (Validator getErrors) subject =
-    getErrors subject
+    case getErrors subject of
+        [] ->
+            Ok (Valid subject)
+
+        errors ->
+            Err errors
 
 
 
