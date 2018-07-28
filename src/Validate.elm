@@ -52,7 +52,7 @@ module Validate
 
 # Creating validators
 
-@docs ifBlank, ifNotInt, ifEmptyList, ifEmptyDict, ifEmptySet, ifNothing, ifInvalidEmail, ifTrue, ifFalse, fromErrors
+@docs ifBlank, ifNotInt, ifNotFloat, ifEmptyList, ifEmptyDict, ifEmptySet, ifNothing, ifInvalidEmail, ifTrue, ifFalse, fromErrors
 
 
 # Combining validators
@@ -62,7 +62,7 @@ module Validate
 
 # Checking values directly
 
-@docs isBlank, isInt, isValidEmail
+@docs isBlank, isInt, isFloat, isValidEmail
 
 -}
 
