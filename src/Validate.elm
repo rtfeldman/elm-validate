@@ -488,10 +488,10 @@ isValidEmail email =
 isFloat : String -> Bool
 isFloat str =
     case String.toFloat str of
-        Ok _ ->
+        Just _ ->
             True
 
-        Err _ ->
+        Nothing ->
             False
 
 
