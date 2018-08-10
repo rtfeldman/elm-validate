@@ -14,6 +14,11 @@ blankness =
                 ""
                     |> Validate.isBlank
                     |> Expect.true "Validate.isBlank should have considered empty string blank"
+        , fuzz whitespaceChar "any whitespace character is blank" <|
+            \char ->
+                String.fromChar char
+                    |> Validate.isBlank
+                    |> Expect.true "Validate.isBlank should consider a whitespace character blank"
         , fuzz whitespace "whitespace characters are blank" <|
             \str ->
                 str
@@ -61,8 +66,12 @@ float =
 
 whitespace : Fuzzer String
 whitespace =
-    [ ' ', ' ', '\t', '\n' ]
+    Fuzz.list whitespaceChar
+        |> Fuzz.map String.fromList
+
+
+whitespaceChar : Fuzzer Char
+whitespaceChar =
+    [ '\u{000D}', ' ', '\t', '\n' ]
         |> List.map Fuzz.constant
         |> Fuzz.oneOf
-        |> Fuzz.list
-        |> Fuzz.map String.fromList
