@@ -3,8 +3,15 @@
 `elm-validate` provides convenience functions for validating data.
 
 It is based around the idea of a `Validator`, which runs checks on a
-subject and returns a list of errors representing anything invalid about
-that subject. If the list is empty, the subject is valid.
+subject and returns a `Result` which can be be either `Ok (Valid originalSubject)`
+if there were no validation errors or `Err validationErrors` if the
+validation failed.
+
+```elm
+case validate someValidator someSubject of
+  Ok validSubject -> ...--> (Valid someSubject)
+  Err validationErrors -> ...--> List of validation errors
+```
 
 For example:
 
@@ -28,7 +35,12 @@ modelValidator =
 
 validate modelValidator
     { name = "Sam", email = "", age = "abc", selections = [ "cats" ] }
-    --> [ "Please enter an email address.", "Age must be a whole number." ]
+    --> Err [ "Please enter an email address.", "Age must be a whole number." ]
+
+validate modelValidator
+    { name = "Sam", email = "sam@samtown.com", age = "27", selections = [ "cats" ] }
+    --> Ok (Valid { name = "Sam", email = "sam@samtown.com", age = "27", selections = [ "cats" ] })
+
 ```
 
 You can represent your errors however you like. One nice approach is to use
@@ -55,9 +67,9 @@ type alias Model =
 
 validate modelValidator
     { name = "Sam", email = "", age = "abc", selections = [ "cats" ] }
-    --> [ ( Email, "Please enter an email address." )
-    --> , ( Age, "Age must be a whole number." )
-    --> ]
+    --> Err [ ( Email, "Please enter an email address." )
+    -->   , ( Age, "Age must be a whole number." )
+    -->   ]
 ```
 
 Functions that detect the _absence_ of a value, such as `ifBlank` and `ifEmptyList`, accept an error as the second argument:

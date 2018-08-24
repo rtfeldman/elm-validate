@@ -25,7 +25,7 @@ module Validate exposing
             ]
 
     validate modelValidator { name = "Sam", email = "blah", age = "abc" }
-        --> [ "This is not a valid email address.", "Age must be a whole number." ]
+        --> Err [ "This is not a valid email address.", "Age must be a whole number." ]
 
 
 # Validating a subject
@@ -113,7 +113,7 @@ subject.
             ]
 
     validate modelValidator { name = "Sam", email = "", age = "abc" }
-        --> [ ( Email, "Please enter an email address." ), ( Age, "Age must be a whole number." ) ]
+        --> Err [ ( Email, "Please enter an email address." ), ( Age, "Age must be a whole number." ) ]
 
 -}
 validate : Validator error subject -> subject -> Result (List error) (Valid subject)
@@ -372,13 +372,13 @@ and returning it. If no errors are encountered, return `Nothing`.
 
 
     validate modelValidator { email = " ", age = "5" }
-        --> [ "Please enter an email address." ]
+        --> Err [ "Please enter an email address." ]
 
     validate modelValidator { email = "blah", age = "5" }
-        --> [ "This is not a valid email address." ]
+        --> Err [ "This is not a valid email address." ]
 
     validate modelValidator { email = "foo@bar.com", age = "5" }
-        --> []
+        --> Ok (Valid { email = "foo@bar.com", age = "5" })
 
 -}
 firstError : List (Validator error subject) -> Validator error subject
