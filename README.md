@@ -9,8 +9,8 @@ validation failed.
 
 ```elm
 case validate someValidator someSubject of
-  Result.Ok validSubject -> ...--> (Valid someSubject)
-  Result.Err validationErrors -> ...--> List of validation errors
+  Ok validSubject -> ...--> (Valid someSubject)
+  Err validationErrors -> ...--> List of validation errors
 ```
 
 For example:
@@ -35,11 +35,11 @@ modelValidator =
 
 validate modelValidator
     { name = "Sam", email = "", age = "abc", selections = [ "cats" ] }
-    --> Result.Err [ "Please enter an email address.", "Age must be a whole number." ]
+    --> Err [ "Please enter an email address.", "Age must be a whole number." ]
 
 validate modelValidator
     { name = "Sam", email = "sam@samtown.com", age = "27", selections = [ "cats" ] }
-    --> Result.Ok (Valid { name = "Sam", email = "sam@samtown.com", age = "27", selections = [ "cats" ] })
+    --> Ok (Valid { name = "Sam", email = "sam@samtown.com", age = "27", selections = [ "cats" ] })
 
 ```
 
@@ -67,7 +67,7 @@ type alias Model =
 
 validate modelValidator
     { name = "Sam", email = "", age = "abc", selections = [ "cats" ] }
-    --> Result.Err [ ( Email, "Please enter an email address." )
+    --> Err [ ( Email, "Please enter an email address." )
     -->   , ( Age, "Age must be a whole number." )
     -->   ]
 ```
