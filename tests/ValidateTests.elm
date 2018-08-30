@@ -1,4 +1,4 @@
-module ValidateTests exposing (..)
+module ValidateTests exposing (blankness, email, float, whitespace, whitespaceChar)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)

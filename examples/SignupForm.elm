@@ -1,4 +1,4 @@
-module SignupForm exposing (..)
+module SignupForm exposing (Field(..), Model, modelValidator, result)
 
 import Validate exposing (Validator, ifBlank, ifEmptyList, ifInvalidEmail, ifNotInt, validate)
 
