@@ -4,6 +4,10 @@ sudo: false
 # This is one of the node versions that's pre-installed on Travis
 node_js: "8.9.1"
 
+os:
+  - linux
+  - osx
+
 env:
   global:
     - ELM_VERSION=0.19.0
