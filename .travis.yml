@@ -1,0 +1,73 @@
+language: node_js
+sudo: false
+
+# This is one of the node versions that's pre-installed on Travis
+node_js: "8.9.1"
+
+env:
+  global:
+    - ELM_VERSION=0.19.0
+    - ELM_FORMAT_VERSION=0.8.0
+    - ELM_TEST_VERSION=0.19.0-beta5
+    - ELM_HOME=.travis-elm-home
+
+cache:
+  directories:
+    - .travis-elm-home
+    - .sysconfcpus
+    - .elm-bin
+    - .node-global
+
+before_install:
+  - mkdir -p .node-global
+  - npm config set prefix .node-global
+  - export PATH=.node-global/bin:.elm-bin/elm/$ELM_VERSION:.elm-bin/elm-format/$ELM_FORMAT_VERSION:$PATH
+  - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+  - | # epic build time improvement - see https://github.com/elm-lang/elm-compiler/issues/1473#issuecomment-245704142
+    if [ ! -d .sysconfcpus/bin ];
+    then
+      git clone https://github.com/obmarg/libsysconfcpus.git .libsysconfcpus;
+      cd .libsysconfcpus;
+      ./configure --prefix=$TRAVIS_BUILD_DIR/.sysconfcpus;
+      make && make install;
+      cd ..;
+    fi
+
+
+install:
+  - | # install elm if it's not already installed from cache
+    if [ ! -d .elm-bin/elm/$ELM_VERSION ];
+    then
+      set -e
+      wget -qO- https://github.com/elm/compiler/releases/download/$ELM_VERSION/binaries-for-linux.tar.gz | tar xvz
+      if [ ! -f elm ]; then
+          echo "Downloading and installing elm failed."
+          travis_terminate 2
+      fi
+      mkdir -p .elm-bin/elm/$ELM_VERSION
+      mv elm .elm-bin/elm/$ELM_VERSION
+      pushd .elm-bin/elm/$ELM_VERSION
+      mv elm elm-old
+      printf '%s\n\n' '#!/bin/bash' 'echo "Running elm with sysconfcpus -n 1"' '$TRAVIS_BUILD_DIR/.sysconfcpus/bin/sysconfcpus -n 1 elm-old "$@"' > elm
+      chmod +x elm
+      popd
+    fi
+  - | # install elm-format if it's not already installed from cache
+    if [ ! -d .elm-bin/elm-format/$ELM_FORMAT_VERSION ];
+    then
+      set -e
+      wget -qO- https://github.com/avh4/elm-format/releases/download/$ELM_FORMAT_VERSION/elm-format-0.19-$ELM_FORMAT_VERSION-linux-x64.tgz | tar xvz
+      if [ ! -f elm-format ]; then
+          echo "Downloading and installing elm-format failed."
+          travis_terminate 2
+      fi
+      mkdir -p .elm-bin/elm-format/$ELM_FORMAT_VERSION
+      mv elm-format .elm-bin/elm-format/$ELM_FORMAT_VERSION
+    fi
+  - | # Always install elm-test from scratch. It would be great if we could detect the version and cache it somehow.
+    npm install --global elm-test@$ELM_TEST_VERSION
+
+script:
+  - elm-format --validate .
+  - elm make
+  - elm-test
