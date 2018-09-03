@@ -40,6 +40,34 @@ validate modelValidator
 validate modelValidator
     { name = "Sam", email = "sam@samtown.com", age = "27", selections = [ "cats" ] }
     --> Ok (Valid { name = "Sam", email = "sam@samtown.com", age = "27", selections = [ "cats" ] })
+```
+
+To display the errors we can pattern match for a failed validation result,
+and then `map` over the strings to convert them for display, in this case
+to an un-ordered list showing each of the errors.
+
+```elm
+view model =
+    let
+        validationResult =
+            validate modelValidator model
+
+        errorDisplay =
+            case validationResult of
+                Ok _ ->
+                    div [] []
+
+                Err errors ->
+                    ul [] (List.map (\error -> li [] [ text error ]) errors)
+    in
+    div []
+        [ form []
+            [ errorDisplay
+            , input [ value model.name, placeholder "Please enter your name...", onInput UpdateName ] []
+            , input [ value model.email, placeholder "Please enter your email...", onInput UpdateEmail ] []
+            -- other form fields ...
+            ]
+        ]
 
 ```
 
@@ -70,6 +98,45 @@ validate modelValidator
     --> Err [ ( Email, "Please enter an email address." )
     -->   , ( Age, "Age must be a whole number." )
     -->   ]
+
+```
+
+If your errors are in this format its easy to extract them and display them
+next to the field which produced the error.
+
+```elm
+
+-- Helper function to extract a specific fields errors from the validation result
+errorElements: Field -> Result (List ( Field, String )) (Valid Model) -> Html msg
+errorElements field validationResult =
+    case validationResult of
+        Ok _ ->
+            div [] []
+
+        Err errors ->
+            let
+                fieldErrors =
+                    errors
+                        |> List.filter (\( f, _ ) -> f == field)
+                        |> List.map (\( _, error ) -> li [] [ text error ])
+            in
+            ul [] fieldErrors
+
+view model =
+    let
+        validationResult =
+            validate modelValidator model
+    in
+    div []
+        [ form []
+            [ input [ value model.name, placeholder "Please enter your name...", onInput UpdateName ] []
+            , errorElements Name validationResult
+            , input [ value model.email, placeholder "Please enter your email...", onInput UpdateEmail ] []
+            , errorElements Email validationResult
+            -- other form fields ...
+            ]
+        ]
+
 ```
 
 Functions that detect the _absence_ of a value, such as `ifBlank` and `ifEmptyList`, accept an error as the second argument:
