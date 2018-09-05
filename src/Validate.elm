@@ -19,7 +19,7 @@ module Validate exposing
             [ ifBlank .name "Please enter a name."
             , Validate.firstError
                 [ ifBlank .email "Please enter an email address."
-                , ifInvalidEmail .email "This is not a valid email address."
+                , ifInvalidEmail .email (\_ -> "This is not a valid email address.")
                 ]
             , ifNotInt .age "Age must be a whole number."
             ]
@@ -365,7 +365,7 @@ and returning it. If no errors are encountered, return `Nothing`.
         Validate.all
             [ Validate.firstError
                 [ ifBlank .email "Please enter an email address."
-                , ifInvalidEmail .email "This is not a valid email address."
+                , ifInvalidEmail .email (\_ -> "This is not a valid email address.")
                 ]
             , ifNotInt .age "Age must be a whole number."
             ]
