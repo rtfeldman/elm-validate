@@ -20,9 +20,9 @@ modelValidator =
         [ ifBlank .name ( Name, "Please enter a name." )
         , Validate.firstError
             [ ifBlank .email ( Email, "Please enter an email address." )
-            , ifInvalidEmail .email ( Email, "This is not a valid email address." )
+            , ifInvalidEmail .email (\value -> ( Email, value ++ " is not a valid email address." ))
             ]
-        , ifNotInt .age ( Age, "Age must be a whole number." )
+        , ifNotInt .age (\_ -> ( Age, "Age must be a whole number." ))
         , ifEmptyList .selections ( Selections, "Please select at least one." )
         ]
 
