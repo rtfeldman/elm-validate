@@ -21,7 +21,7 @@ module Validate exposing
                 [ ifBlank .email "Please enter an email address."
                 , ifInvalidEmail .email "This is not a valid email address."
                 ]
-            , ifNotInt .age "Age must be a whole number."
+            , ifNotInt .age (\_ -> "Age must be a whole number.")
             ]
 
     validate modelValidator { name = "Sam", email = "blah", age = "abc" }
@@ -109,7 +109,7 @@ subject.
         Validate.all
             [ ifBlank .name ( Name, "Please enter a name." )
             , ifBlank .email ( Email, "Please enter an email address." )
-            , ifNotInt .age ( Age, "Age must be a whole number." )
+            , ifNotInt .age (\_ -> ( Age, "Age must be a whole number." ))
             ]
 
     validate modelValidator { name = "Sam", email = "", age = "abc" }
@@ -333,7 +333,7 @@ error lists.
         Validate.all
             [ ifBlank .name "Please enter a name."
             , ifBlank .email "Please enter an email address."
-            , ifNotInt .age "Age must be a whole number."
+            , ifNotInt .age (\_ -> "Age must be a whole number.")
             ]
 
 -}
@@ -364,10 +364,10 @@ and returning it. If no errors are encountered, return `Nothing`.
     modelValidator =
         Validate.all
             [ Validate.firstError
-                [ ifBlank .email "Please enter an email address."
-                , ifInvalidEmail .email "This is not a valid email address."
+                [ ifBlank .email (\_ -> "Please enter an email address.")
+                , ifInvalidEmail .email (\_ -> "This is not a valid email address.")
                 ]
-            , ifNotInt .age "Age must be a whole number."
+            , ifNotInt .age (\_ -> "Age must be a whole number.")
             ]
 
 
