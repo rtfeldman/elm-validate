@@ -209,7 +209,7 @@ ifNothing subjectToMaybe error =
 -}
 ifNotFloat : (subject -> String) -> error -> Validator error subject
 ifNotFloat subjectToString error =
-    ifTrue (\subject -> isFloat (subjectToString subject)) error
+    ifFalse (\subject -> isFloat (subjectToString subject)) error
 
 
 {-| Return an error if an email address is malformed.
