@@ -16,7 +16,7 @@ case validate someValidator someSubject of
 For example:
 
 ```elm
-import Validate exposing (ifBlank, ifNotInt, validate)
+import Validate exposing (Validator, ifBlank, ifEmptyList, ifNotInt, validate)
 
 
 type alias Model =
@@ -28,7 +28,7 @@ modelValidator =
     Validate.all
         [ ifBlank .name "Please enter a name."
         , ifBlank .email "Please enter an email address."
-        , ifNotInt .age "Age must be a whole number."
+        , ifNotInt .age (always "Age must be a whole number")
         , ifEmptyList .selections "Please select at least one."
         ]
 
