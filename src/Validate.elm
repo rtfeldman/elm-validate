@@ -156,7 +156,7 @@ ifBlank subjectToString error =
     modelValidator =
         Validate.all
             [ ifNotInt .followers (\_ -> "Please enter a whole number for followers.")
-            , ifNotInt .stars (\stars -> "Stars was \"" ++ stars ++ "\", but it needs to be a whole number.")"
+            , ifNotInt .stars (\stars -> "Stars was \"" ++ stars ++ "\", but it needs to be a whole number.")
             ]
 
 -}
