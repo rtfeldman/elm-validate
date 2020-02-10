@@ -1,6 +1,6 @@
 module Validate exposing
     ( Validator, Valid, validate, fromValid
-    , ifBlank, ifNotInt, ifNotFloat, ifEmptyList, ifEmptyDict, ifEmptySet, ifNothing, ifInvalidEmail, ifTrue, ifFalse, fromErrors
+    , ifBlank, ifNotInt, ifNotFloat, ifEmptyList, ifEmptyDict, ifEmptySet, ifNoRegexMatch, ifNothing, ifInvalidEmail, ifTrue, ifFalse, fromErrors
     , all, any, firstError
     , isBlank, isInt, isFloat, isValidEmail
     )
@@ -35,7 +35,7 @@ module Validate exposing
 
 # Creating validators
 
-@docs ifBlank, ifNotInt, ifNotFloat, ifEmptyList, ifEmptyDict, ifEmptySet, ifNothing, ifInvalidEmail, ifTrue, ifFalse, fromErrors
+@docs ifBlank, ifNotInt, ifNotFloat, ifEmptyList, ifEmptyDict, ifEmptySet, ifNoRegexMatch, ifNothing, ifInvalidEmail, ifTrue, ifFalse, fromErrors
 
 
 # Combining validators
@@ -239,6 +239,46 @@ ifInvalidEmail subjectToEmail errorFromEmail =
                 [ errorFromEmail email ]
     in
     Validator getErrors
+
+
+{-| Return an error if the given pattern is not matched.
+
+    import Validate exposing (Validator, ifBlank, ifNotInt)
+
+    modelValidator : Validator Model String
+    modelValidator =
+        Validate.all
+            [ ifNoRegexMatch "\\d{4}-\\d{2}-\\d{2}" .patientBirthDate PatientBirthDate
+            ]
+
+-}
+ifNoRegexMatch : String -> (subject -> String) -> error -> Validator error subject
+ifNoRegexMatch pattern subjectToString error =
+    let
+        getErrors subject =
+            let
+                inputString =
+                    subjectToString subject
+            in
+            if matchesRegex pattern inputString then
+                []
+
+            else
+                [ error ]
+    in
+    Validator getErrors
+
+
+matchesRegex : String -> String -> Bool
+matchesRegex pattern inputString =
+    Regex.contains (matchPattern pattern) inputString
+
+
+matchPattern : String -> Regex
+matchPattern pattern =
+    pattern
+        |> Regex.fromStringWith { caseInsensitive = True, multiline = False }
+        |> Maybe.withDefault Regex.never
 
 
 {-| Create a custom validator, by providing a function that returns a list of
