@@ -1,6 +1,6 @@
 module Validate exposing
     ( Validator, Valid, validate, fromValid
-    , ifBlank, ifNotInt, ifNotFloat, ifEmptyList, ifEmptyDict, ifEmptySet, ifNothing, ifInvalidEmail, ifTrue, ifFalse, fromErrors
+    , ifBlank, ifNotInt, ifNotFloat, ifEmptyList, ifEmptyDict, ifEmptySet, ifNoRegexMatch, ifNothing, ifInvalidEmail, ifTrue, ifFalse, fromErrors
     , all, any, firstError
     , isBlank, isInt, isFloat, isValidEmail
     )
@@ -35,7 +35,7 @@ module Validate exposing
 
 # Creating validators
 
-@docs ifBlank, ifNotInt, ifNotFloat, ifEmptyList, ifEmptyDict, ifEmptySet, ifNothing, ifInvalidEmail, ifTrue, ifFalse, fromErrors
+@docs ifBlank, ifNotInt, ifNotFloat, ifEmptyList, ifEmptyDict, ifEmptySet, ifNoRegexMatch, ifNothing, ifInvalidEmail, ifTrue, ifFalse, fromErrors
 
 
 # Combining validators
@@ -241,7 +241,18 @@ ifInvalidEmail subjectToEmail errorFromEmail =
     Validator getErrors
 
 
-ifNoRegexMatch : String -> (subject -> String) -> (String -> error) -> Validator error subject
+{-| Return an error if the given pattern is not matched.
+
+    import Validate exposing (Validator, ifBlank, ifNotInt)
+
+    modelValidator : Validator Model String
+    modelValidator =
+        Validate.all
+            [ ifNoRegexMatch "\\d{4}-\\d{2}-\\d{2}" .patientBirthDate PatientBirthDate
+            ]
+
+-}
+ifNoRegexMatch : String -> (subject -> String) -> error -> Validator error subject
 ifNoRegexMatch pattern subjectToString error =
     let
         getErrors subject =
@@ -253,7 +264,7 @@ ifNoRegexMatch pattern subjectToString error =
                 []
 
             else
-                [ error inputString ]
+                [ error ]
     in
     Validator getErrors
 
