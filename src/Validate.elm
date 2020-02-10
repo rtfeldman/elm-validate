@@ -241,6 +241,35 @@ ifInvalidEmail subjectToEmail errorFromEmail =
     Validator getErrors
 
 
+ifNoRegexMatch : String -> (subject -> String) -> (String -> error) -> Validator error subject
+ifNoRegexMatch pattern subjectToString error =
+    let
+        getErrors subject =
+            let
+                inputString =
+                    subjectToString subject
+            in
+            if matchesRegex pattern inputString then
+                []
+
+            else
+                [ error inputString ]
+    in
+    Validator getErrors
+
+
+matchesRegex : String -> String -> Bool
+matchesRegex pattern inputString =
+    Regex.contains (matchPattern pattern) inputString
+
+
+matchPattern : String -> Regex
+matchPattern pattern =
+    pattern
+        |> Regex.fromStringWith { caseInsensitive = True, multiline = False }
+        |> Maybe.withDefault Regex.never
+
+
 {-| Create a custom validator, by providing a function that returns a list of
 errors given a subject.
 
