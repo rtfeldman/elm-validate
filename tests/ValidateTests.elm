@@ -45,6 +45,11 @@ email =
                 "foo@bar.com"
                     |> Validate.isValidEmail
                     |> Expect.true "Validate.isValidEmail should have considered foo@bar.com a valid email address"
+        , test "incomplete domain is not a valid email" <|
+            \() ->
+                "foo@bar"
+                    |> Validate.isValidEmail
+                    |> Expect.false "Validate.isValidEmail should have considered foo@bar an invalid email address"
         ]
 
 
